@@ -12,6 +12,29 @@ from pydecay.nuclide import Nuclide  # noqa: E402
 
 REL_TOL = 1e-3
 
+# Controller ruling (Task 11): IAEA Live Chart vs ICRP-107 published evaluation
+# differences (both value sets in .superpowers/sdd/.../task-11-report.md; to be
+# documented in docs/data-sources.md at Task 12). REL_TOL stays locked — any
+# nuclide outside this set must still land within REL_TOL.
+ACCEPTED_DEVIATIONS = frozenset(
+    {
+        "Ar-39",
+        "C-11",
+        "Cs-137",
+        "I-123",
+        "K-40",
+        "Kr-85",
+        "Pa-234m",
+        "Ra-224",
+        "S-35",
+        "Sr-90",
+        "Tc-99m",
+        "Th-230",
+        "Th-232",
+        "Tl-201",
+    }
+)
+
 
 def _rr_half_life_s(name: str) -> float:
     """Adapter: radioactivedecay half-life in seconds (attribute from Task 11 Step 1 probe).
@@ -75,8 +98,13 @@ def test_half_life_drift_within_tolerance(capsys):
             a = ours[name].half_life_s
             b = _rr_half_life_s(name)
             rel = abs(a - b) / b
-            flag = "OK " if rel <= REL_TOL else "FAIL"
+            if rel <= REL_TOL:
+                flag = "OK  "
+            elif name in ACCEPTED_DEVIATIONS:
+                flag = "ACCP"
+            else:
+                flag = "FAIL"
             print(f"  {flag} {name:10s} pydecay={a:.6e}s  rr={b:.6e}s  rel={rel:.3e}")
-            if rel > REL_TOL:
+            if rel > REL_TOL and name not in ACCEPTED_DEVIATIONS:
                 failures.append((name, rel))
     assert not failures, f"half-life drift beyond {REL_TOL}: {failures}"
