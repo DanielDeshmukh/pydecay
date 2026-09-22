@@ -31,12 +31,14 @@ Success criterion: all §6 worked examples of the reference doc pass as tests ag
 pydecay/
 ├── pyproject.toml            # hatchling; deps: numpy, scipy, pint; requires-python >=3.10
 ├── src/pydecay/
-│   ├── __init__.py           # public API re-exports only
+│   ├── __init__.py           # public API re-exports + __version__ only
+│   ├── api.py                # pint-aware convenience functions (decayed_atoms, etc.)
 │   ├── decay.py              # §1 single-isotope closed form (pure math, SI floats)
-│   ├── chain.py              # §2 solver: Cetnar-stable Bateman + expm dispatch
+│   ├── chain.py              # §2 domain object DecayChain (pint at edges)
+│   ├── _solver.py            # float-only kernels: guarded Bateman + expm dispatch
 │   ├── graph.py              # species/edge model → generator matrix (branching support)
 │   ├── units.py              # §4 conversions at API boundary (pint); internal seconds/Bq/N
-│   ├── nuclide.py            # Nuclide dataclass + JSON loader/validation
+│   ├── nuclide.py            # Nuclide dataclass + JSON loader/validation (pint at edges)
 │   ├── exceptions.py         # PyDecayError hierarchy
 │   └── data/
 │       ├── nuclides.json     # bundled IAEA-sourced subset + per-entry source/date metadata
@@ -52,8 +54,8 @@ pydecay/
 
 Boundary rules:
 
-- `decay.py`, `chain.py`, `graph.py` **never import pint** — pure SI math on floats/ndarrays, trivially testable.
-- `units.py` and `__init__.py` are the only pint-aware surfaces.
+- **Pure SI modules** — `decay.py`, `graph.py`, `_solver.py` never import pint: floats/ndarrays in seconds/atoms/Bq only, trivially testable.
+- **Pint-at-edge modules** — `units.py`, `nuclide.py`, `chain.py`, `api.py`, `__init__.py` may use pint on their public surface (accepting strings/Quantities, returning Quantities per the mirroring rule in §5); every call down into the pure modules passes canonical floats.
 - `data/_fetch_iaea.py` is a build-time tool, excluded from the wheel.
 
 ## 4. Core math (from the reference doc — tests are written against these)
@@ -84,10 +86,11 @@ Nₙ(t) = N₁₀ · (∏ᵢ₌₁ⁿ⁻¹ λᵢ) · Σₖ₌₁ⁿ [ e^(−λ�
 
 Solver dispatch (internal, automatic — users never choose):
 
-1. Build generator matrix `G` in `graph.py`: `G[i,i] = −λᵢ`; for each edge j→i (j decays into i) with branching fraction `fⱼᵢ`: `G[j,i] += λⱼ·fⱼᵢ`. Linear unbranched chains are the special case `f = 1`.
+1. Build generator matrix `G` in `graph.py` with the convention `dN/dt = G @ N`: `G[i,i] = −λᵢ`; for each edge j→i (j decays into i) with branching fraction `fⱼᵢ`: `G[i,j] += λⱼ·fⱼᵢ` (destination row, source column — subdiagonal for linear chains). Note: the reference doc's index notation `A[i−1][i] = λᵢ₋₁` is transposed relative to this convention; we use the form verified by the daughter-ingrowth test. Linear unbranched chains are the special case `f = 1`.
 2. Path selection:
-   - Linear, unbranched, and `min pairwise |λᵢ−λⱼ| ≥ ε·max(λ)` → **Cetnar-stable Bateman closed form** (fast, exact). ε default `1e-8`, overridable per chain.
-   - Branching present **or** any degenerate pair (`|λᵢ−λⱼ| < ε·max(λ)`) → `scipy.linalg.expm(G·t) @ N(0)` — bulletproof; this is the required guard for the §2.3 regression case (λ₁ = 0.6931, λ₂ = 0.6932 must be finite, no NaN).
+   - Linear, unbranched, parent-only initial condition (`N₀` nonzero only for species 1), and `min pairwise |λᵢ−λⱼ| ≥ ε·max(λ)` → **Bateman closed form** (fast, exact when well-separated). ε default `1e-8`, overridable per chain.
+   - Branching present **or** any degenerate pair (`|λᵢ−λⱼ| < ε·max(λ)`) **or** nonzero initial daughters → `scipy.linalg.expm(G·t) @ N(0)` — bulletproof; this is the required guard for the §2.3 regression case (λ₁ = 0.6931, λ₂ = 0.6932 must be finite, no NaN).
+   - This realizes fix option 2 from the reference §2.2 (expm fallback). Cetnar's reformulation (fix option 1) is deferred to a v2 optimization; it changes performance characteristics, not results, once the expm guard is in place.
 3. `t = 0` shortcut: return a copy of `N(0)` with no solver call.
 4. Branching never touches Bateman — it is a matrix-exponential problem by construction. Constant rates ⇒ LTI ⇒ `expm` is exact; `solve_ivp` is unnecessary in v1.
 
@@ -98,21 +101,27 @@ Conservation invariant (tests): for a closed chain ending in a stable nuclide, `
 ## 5. Public API surface
 
 ```python
-from pydecay import Nuclide, DecayChain, decayed_atoms, remaining_fraction
+from pydecay import (
+    Nuclide, DecayChain,
+    decayed_atoms, decayed_activity, remaining_fraction,
+)
 
 # --- data ---
-i131 = Nuclide.load("I-131")   # bundled JSON; .half_life (pint), .lambda_ (1/s),
-                                # .decay_modes, .source, .evaluation_date
+i131 = Nuclide.load("I-131")   # bundled JSON; .half_life (pint, seconds), .lambda_ (1/s),
+                                # .decay_modes, .source, .fetched
 
 # --- single isotope (§1): plain numbers or pint Quantities ---
 N = decayed_atoms(N0=1e6, half_life="8.02 days", time="24 hours")
+A = decayed_activity(A0=1000.0, half_life="8.02 days", time="8.02 days")  # → 500.0
+f = remaining_fraction(half_life="8.02 days", time="8.02 days")           # → 0.5 (always float)
 A = i131.activity(N=1e6, t="8.02 days")          # Bq or pint
 
 # --- chains (§2) ---
 chain = DecayChain.from_isotopes(["U-238", "Th-234", ...])   # linear, from data
 chain = DecayChain(lambdas=[0.6931, 0.6932], names=["A", "B"])  # explicit λ's
 chain = DecayChain.branching(                                  # branching ratios
-    parent="I-131", branches={"Xe-131": 0.836, "Cs-131": 0.164})
+    parent="P", branches={"D1": 0.6, "D2": 0.3},
+    lambdas={"P": 0.6931, "D1": 1e-5, "D2": 2e-5})  # λ from data when name is known, else required
 
 N_t = chain.at(t="1 day")        # dict: species → atoms (or pint Quantity)
 A_t = chain.activity(t="1 day")  # dict: species → Bq
@@ -120,10 +129,12 @@ A_t = chain.activity(t="1 day")  # dict: species → Bq
 
 API rules:
 
-- **Return kind mirrors input kind**: plain float in → plain float out; pint in → pint out (no surprise units).
+- **Return-kind mirroring rule (precise):** each result mirrors the kind of the *primary numeric input it derives from* — `decayed_atoms` mirrors `N0`; `decayed_activity` mirrors `A0`; `Nuclide.activity` and `DecayChain.at`/`.activity` mirror `n0` (default: plain floats). Quantity in → Quantity out (same kind of unit); float in → float out. String inputs on unit-typed args (`t`, `half_life`) never change output kind; they parse via pint at the boundary. `remaining_fraction` is dimensionless and **always returns float**.
 - Strings accepted for convenience (`"8.02 days"`) via pint's parser, at the public boundary only.
-- Internal canonical units: time = seconds (float), atoms = float, activity = Bq (float). Plain-float convention: `t` in seconds, `A` in Bq, `N` in atoms.
+- Internal canonical units: time = seconds (float), atoms = float, activity = Bq (float). Plain-float convention: `t` in seconds, `A` in Bq, `N` in atoms. pint atoms use the package-defined `atom` unit (dimensionless counting unit on the shared registry).
 - `DecayChain` computes lazily; solver dispatch is an implementation detail.
+- `DecayChain` default initial condition: parent `N₀ = 1.0`, all others 0 (plain floats).
+- Branching topology in v1: star (one parent → terminal daughters); linear chains compose only as pure linear.
 - `lambda_` / half-life exposed as read-only properties; no mutation API in v1.
 
 ## 6. Units (units.py)
@@ -165,7 +176,8 @@ Single hierarchy rooted at `PyDecayError`:
 - `NuclideNotFoundError` — unknown isotope name at load time.
 - `InvalidHalfLifeError` — λ ≤ 0, NaN, or non-finite in data or API input.
 - `InvalidTimeError` — t < 0 (negative time rejected in v1; no "before t=0" ingrowth semantics).
-- `ChainDefinitionError` — empty chain, λ list length mismatch, branching fractions summing to > 1 (sum ≤ 1 allowed; remainder = decay to untracked sink, documented).
+- `ChainDefinitionError` — empty chain, λ list length mismatch, branching fractions summing to > 1 (sum ≤ 1 allowed; remainder = decay to untracked sink, documented), or λ = 0 on a non-terminal species (λ = 0 allowed only for terminal/stable species; λ < 0 always rejected).
+- `DataFormatError` — bundled JSON record missing required keys or carrying non-parseable values.
 - `UnitError` — unparseable unit string or dimensionally wrong pint input (e.g. `"5 meters"` as time).
 - Solvers assert finiteness of outputs; on scipy failure, raise `PyDecayError` wrapping the original error. Never return NaN silently.
 
