@@ -1,0 +1,26 @@
+site_name: pydecay
+site_description: Radioactive decay mathematics for Python
+exclude_docs: |
+  superpowers/
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Mathematics: math.md
+  - Architecture: architecture.md
+  - Units: units.md
+  - Data sources: data-sources.md
+  - API reference: api.md
+  - Development: development.md
