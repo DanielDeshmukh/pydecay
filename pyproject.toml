@@ -9,7 +9,7 @@ description = "Radioactive decay mathematics: analytical decay, Bateman chains w
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
-authors = [{ name = "pydecay contributors" }]
+authors = [{ name = "Daniel Deshmukh", email = "deshmukhdaniel2005@gmail.com" }]
 keywords = ["radioactive", "decay", "bateman", "half-life", "activity", "nuclear", "radioactivity"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -29,6 +29,11 @@ dependencies = [
   "scipy>=1.9",
   "pint>=0.20",
 ]
+
+[project.urls]
+Homepage = "https://github.com/DanielDeshmukh/pydecay"
+Repository = "https://github.com/DanielDeshmukh/pydecay"
+Issues = "https://github.com/DanielDeshmukh/pydecay/issues"
 
 [project.optional-dependencies]
 test = ["pytest>=7.4", "pytest-cov>=4.1", "radioactivedecay>=0.1"]

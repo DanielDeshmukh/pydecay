@@ -1,13 +1,19 @@
 # pydecay
 
+[![PyPI version](https://img.shields.io/pypi/v/pydecay)](https://pypi.org/project/pydecay/)
+[![Python 3.10+](https://img.shields.io/pypi/pyversions/pydecay)](https://pypi.org/project/pydecay/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Radioactive decay mathematics for Python: analytical single-isotope decay,
 Bateman decay chains with a matrix-exponential stability guard, branching
 topologies, IAEA-sourced nuclide data, and activity unit conversions.
 
+Author: **Daniel Deshmukh** · [github.com/DanielDeshmukh/pydecay](https://github.com/DanielDeshmukh/pydecay)
+
 ## Install
 
 ```bash
-pip install -e ".[test]"   # from a clone; PyPI publish is post-v1
+pip install pydecay
 ```
 
 Requires Python >= 3.10. Runtime dependencies: `numpy`, `scipy`, `pint`.
