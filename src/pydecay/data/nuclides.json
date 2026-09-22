@@ -1,0 +1,740 @@
+{
+  "Am-241": {
+    "atomic_mass_u": 241.05682734314954,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 3.6e-12,
+        "mode": "SF"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 13651817760.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Ar-39": {
+    "atomic_mass_u": 38.964313037609536,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 8457436800.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "C-11": {
+    "atomic_mass_u": 11.011432597342628,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC+B+"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 1221.8400000000001,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "C-14": {
+    "atomic_mass_u": 14.003241988620383,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 179878320000.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Ca-45": {
+    "atomic_mass_u": 44.956186271180925,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 14049504.000000002,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Co-57": {
+    "atomic_mass_u": 56.93628981885573,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 23478336.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Co-60": {
+    "atomic_mass_u": 59.93381553695313,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 166344192.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Cr-51": {
+    "atomic_mass_u": 50.94476538835154,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 2393625.6,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Cs-134": {
+    "atomic_mass_u": 133.90671850227042,
+    "decay_modes": [
+      {
+        "branch": 0.999997,
+        "mode": "B-"
+      },
+      {
+        "branch": 2.9999999999999997e-06,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 65172755.519999996,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Cs-137": {
+    "atomic_mass_u": 136.90708929688856,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 949252608.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "F-18": {
+    "atomic_mass_u": 18.000937324238265,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC+B+"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 6586.2,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Fe-59": {
+    "atomic_mass_u": 58.93487349319508,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 3843936.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Ga-68": {
+    "atomic_mass_u": 67.9279801623803,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC+B+"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 4062.5999999999995,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "H-3": {
+    "atomic_mass_u": 3.0160492813225126,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 388789632.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "I-123": {
+    "atomic_mass_u": 122.90558975330974,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC+B+"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 47602.8,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "I-125": {
+    "atomic_mass_u": 124.90463061036114,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 5132764.8,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "I-131": {
+    "atomic_mass_u": 130.90612637613827,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 693377.28,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "In-111": {
+    "atomic_mass_u": 110.90510723603042,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 242326.08,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Ir-192": {
+    "atomic_mass_u": 191.9626024137893,
+    "decay_modes": [
+      {
+        "branch": 0.9523999999999999,
+        "mode": "B-"
+      },
+      {
+        "branch": 0.047599999999999996,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 6378825.6,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "K-40": {
+    "atomic_mass_u": 39.96399816497724,
+    "decay_modes": [
+      {
+        "branch": 0.8928,
+        "mode": "B-"
+      },
+      {
+        "branch": 0.1072,
+        "mode": "EC+B+"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 3.93838848e+16,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Kr-85": {
+    "atomic_mass_u": 84.91252726046433,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 338897066.40000004,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Lu-177": {
+    "atomic_mass_u": 176.94376356987777,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 574067.52,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Mn-54": {
+    "atomic_mass_u": 53.940355771597844,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC+B+"
+      },
+      {
+        "branch": 9.3e-07,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 26974080.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Na-24": {
+    "atomic_mass_u": 23.990963012027525,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 53841.6,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "P-32": {
+    "atomic_mass_u": 31.97390764371255,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 1232755.2,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Pa-234m": {
+    "atomic_mass_u": 234.04338491236285,
+    "decay_modes": [
+      {
+        "branch": 0.9984000000000001,
+        "mode": "B-"
+      },
+      {
+        "branch": 0.0016,
+        "mode": "IT"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 69.54,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Pb-210": {
+    "atomic_mass_u": 209.9841883819106,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      },
+      {
+        "branch": 1.9e-08,
+        "mode": "A"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 700578720.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Po-210": {
+    "atomic_mass_u": 209.98287368652302,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 11955686.4,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Pu-239": {
+    "atomic_mass_u": 239.0521615970233,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 3.1e-12,
+        "mode": "SF"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 760853736000.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Ra-223": {
+    "atomic_mass_u": 223.0185006485336,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 8.9e-10,
+        "mode": "14C"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 987552.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Ra-224": {
+    "atomic_mass_u": 224.0202103609149,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 4.0000000000000004e-11,
+        "mode": "14C"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 313770.24,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Ra-226": {
+    "atomic_mass_u": 226.02540818663104,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 3.2e-11,
+        "mode": "14C"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 50492160000.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Rn-222": {
+    "atomic_mass_u": 222.0175760178808,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 330238.08,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "S-35": {
+    "atomic_mass_u": 34.96903232138018,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 7548768.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Se-75": {
+    "atomic_mass_u": 74.92252287071652,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 10348992.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Sr-90": {
+    "atomic_mass_u": 89.90772786990631,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 912330216.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Tc-99": {
+    "atomic_mass_u": 98.90624968126677,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 6661809360000.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Tc-99m": {
+    "atomic_mass_u": 98.90640285840405,
+    "decay_modes": [
+      {
+        "branch": 0.999963,
+        "mode": "IT"
+      },
+      {
+        "branch": 3.7000000000000005e-05,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 21625.920000000002,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Th-230": {
+    "atomic_mass_u": 230.03313226774043,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 5.8e-13,
+        "mode": "24NE"
+      },
+      {
+        "branch": 4e-14,
+        "mode": "SF"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 2385249638400.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Th-232": {
+    "atomic_mass_u": 232.0380536064672,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 1.0999999999999999e-11,
+        "mode": "SF"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 4.418064e+17,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Th-234": {
+    "atomic_mass_u": 234.04359980153873,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 2082240.0000000002,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Tl-201": {
+    "atomic_mass_u": 200.9708202360816,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 262828.8,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "U-234": {
+    "atomic_mass_u": 234.04095029576774,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 1.64e-11,
+        "mode": "SF"
+      },
+      {
+        "branch": 1.4e-13,
+        "mode": "Mg"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 7747390800000.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "U-235": {
+    "atomic_mass_u": 235.04392811709027,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 7e-11,
+        "mode": "SF"
+      },
+      {
+        "branch": 8e-12,
+        "mode": "28MG"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 2.22165504e+16,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "U-238": {
+    "atomic_mass_u": 238.05078693668278,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "A"
+      },
+      {
+        "branch": 5.450000000000001e-07,
+        "mode": "SF"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 1.409993568e+17,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Y-90": {
+    "atomic_mass_u": 89.9071417502534,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "B-"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 230580.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  },
+  "Zn-65": {
+    "atomic_mass_u": 64.92924053536275,
+    "decay_modes": [
+      {
+        "branch": 1.0,
+        "mode": "EC+B+"
+      }
+    ],
+    "fetched": "2026-09-22",
+    "half_life_s": 21075552.0,
+    "half_life_uncertainty_s": null,
+    "source": "IAEA Live Chart of Nuclides (nds.iaea.org)",
+    "source_url": "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
+  }
+}
