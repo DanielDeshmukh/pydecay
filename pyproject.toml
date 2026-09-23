@@ -51,6 +51,7 @@ test = [
 ]
 docs = ["mkdocs-material>=9.5"]
 dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4", "mypy>=1.8", "build>=1.0"]
+icrp = ["pyreadr>=0.5"]
 
 [tool.hatch.version]
 path = "src/pydecay/__init__.py"
@@ -97,3 +98,7 @@ packages = ["pydecay"]
 [[tool.mypy.overrides]]
 module = "pint.*"
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "pyreadr.*"
+ignore_missing_imports = true

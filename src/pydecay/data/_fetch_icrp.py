@@ -1,8 +1,9 @@
 """Checksum-pinned fetch/build CLI for the ICRP-107 catalog.
 
 Build-time tool (network/IO allowed; not a runtime module). Writes
-``icrp107.json``, the golden NDX slice, and ``LICENSE.ICRP-07`` under
-``src/pydecay/data/`` / ``tests/fixtures/icrp/``.
+``icrp107.json``, the golden NDX slice, ``LICENSE.ICRP-07``, and (with
+``--spectra``) the gzipped RAD/BET artifacts under ``src/pydecay/data/`` /
+``tests/fixtures/icrp/``.
 
 NDX pins (plan Resolved 1a/1b): SHA-256 must match before any artifact is
 written. ``fetched`` dates use ``datetime.date.today().isoformat()`` at
@@ -13,12 +14,15 @@ from __future__ import annotations
 
 import argparse
 import datetime
+import gzip
 import hashlib
 import json
 import os
 import re
 import sys
+import tarfile
 import urllib.request
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +37,8 @@ NDX_URL = (
 NDX_SHA256 = "ac84a9cf1da890031c2ab81a33cba858ff637d701fca3bc33fb07c5a1d6cf2b9"
 LICENSE_URL = "https://raw.githubusercontent.com/radioactivedecay/datasets/main/LICENSE.ICRP-07"
 LICENSE_SHA256 = "48b128ed84d3e2ee7693491d29fb4ecdf3d00a1e99db20ceb97a9ab36a21aa51"
+RADDATA_URL = "https://cran.r-project.org/src/contrib/RadData_1.0.2.tar.gz"
+RADDATA_SHA256 = "837f3369e26b43242e514e2d8e9f715cf09ddb0230079f528b11202062ecf54e"
 
 SOURCE = "ICRP-107"
 SOURCE_STABLE = "ICRP-107-stable"
@@ -43,6 +49,8 @@ _DATA_DIR = Path(__file__).resolve().parent
 _ROOT = _DATA_DIR.parents[2]
 OUT_PATH = _DATA_DIR / "icrp107.json"
 LICENSE_OUT_PATH = _DATA_DIR / "LICENSE.ICRP-07"
+RAD_OUT_PATH = _DATA_DIR / "icrp107_rad.json.gz"
+BET_OUT_PATH = _DATA_DIR / "icrp107_bet.json.gz"
 GOLDEN_OUT_PATH = _ROOT / "tests" / "fixtures" / "icrp" / "ICRP-07.NDX.golden_slice.json"
 GOLDEN_NAMES = ("U-238", "Tc-99m", "I-131", "Sr-90", "Co-60", "Pu-239")
 
@@ -101,6 +109,78 @@ def write_json_atomic(path: Path, obj: Any) -> None:
         encoding="utf-8",
     )
     os.replace(tmp, path)
+
+
+def write_gzip_json(path: Path, obj: Any) -> None:
+    """Serialize ``obj`` as gzip-compressed JSON and replace ``path`` atomically."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name + ".tmp")
+    payload = json.dumps(obj, separators=(",", ":"), allow_nan=True).encode("utf-8")
+    tmp.write_bytes(gzip.compress(payload, compresslevel=9))
+    os.replace(tmp, path)
+
+
+def rad_from_rows(rows: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """Group RAD emission rows by nuclide name.
+
+    Args:
+        rows: Dict rows with keys ``RN``, ``code_AN``, ``E_MeV``, ``prob``,
+            ``code_num``, ``is_photon``.
+
+    Returns:
+        Mapping of nuclide name to a list of emission dicts.
+    """
+    out: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        name = str(row["RN"])
+        is_photon_raw = row.get("is_photon", False)
+        if isinstance(is_photon_raw, str):
+            is_photon = is_photon_raw.strip().lower() in {"true", "1", "yes"}
+        else:
+            is_photon = bool(is_photon_raw)
+        out[name].append(
+            {
+                "code_AN": str(row["code_AN"]),
+                "E_MeV": float(row["E_MeV"]),
+                "prob": float(row["prob"]),
+                "code_num": int(float(row["code_num"])),
+                "is_photon": is_photon,
+            }
+        )
+    return dict(out)
+
+
+def bet_from_rows(rows: list[dict[str, Any]]) -> dict[str, dict[str, list[float]]]:
+    """Group BET spectrum rows by nuclide name.
+
+    Args:
+        rows: Dict rows with keys ``RN``, ``E_MeV``, ``A``.
+
+    Returns:
+        Mapping of nuclide name to ``{"E_MeV": [...], "A": [...]}``.
+    """
+    energies: dict[str, list[float]] = defaultdict(list)
+    amps: dict[str, list[float]] = defaultdict(list)
+    for row in rows:
+        name = str(row["RN"])
+        energies[name].append(float(row["E_MeV"]))
+        amps[name].append(float(row["A"]))
+    return {name: {"E_MeV": energies[name], "A": amps[name]} for name in energies}
+
+
+def _codes_from_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Normalize rad_codes rows into the artifact ``codes`` list."""
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        out.append(
+            {
+                "code_num": int(float(row["code_num"])),
+                "code_AN": str(row["code_AN"]),
+                "description": str(row["description"]),
+            }
+        )
+    return out
 
 
 def _parse_nuclide_za(name: str) -> tuple[int, int]:
@@ -324,6 +404,50 @@ def _load_pinned(path: Path | None, url: str, sha256: str, label: str) -> bytes:
     return fetch_bytes(url, sha256)
 
 
+def _load_raddata_tarball(path: Path | None) -> bytes:
+    """Return verified RadData tarball bytes from ``path`` or the network."""
+    if path is not None:
+        data = Path(path).read_bytes()
+        return _require_sha(data, RADDATA_SHA256, f"RadData ({path})")
+    return fetch_bytes(RADDATA_URL, RADDATA_SHA256)
+
+
+def build_spectra(raddata_path: Path | None = None) -> tuple[int, int]:
+    """Build RAD/BET gzip artifacts from the RadData tarball.
+
+    Requires the optional ``icrp`` extra (``pyreadr``). Returns
+    ``(rad_nuclide_count, bet_nuclide_count)``.
+    """
+    try:
+        import pyreadr
+    except ImportError as exc:  # pragma: no cover - build-time only
+        raise DataFormatError(
+            "pyreadr is required for --spectra; install with pip install 'pydecay[icrp]'"
+        ) from exc
+
+    tarball = _load_raddata_tarball(raddata_path)
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        tar_path = tmp_path / "RadData_1.0.2.tar.gz"
+        tar_path.write_bytes(tarball)
+        with tarfile.open(tar_path) as tf:
+            tf.extractall(tmp_path, filter="data")
+
+        rad_df = next(iter(pyreadr.read_r(str(tmp_path / "RadData/data/ICRP_07.RAD.rda")).values()))
+        bet_df = next(iter(pyreadr.read_r(str(tmp_path / "RadData/data/ICRP_07.BET.rda")).values()))
+        codes_df = next(iter(pyreadr.read_r(str(tmp_path / "RadData/data/rad_codes.rda")).values()))
+
+    emissions = rad_from_rows(rad_df.to_dict(orient="records"))
+    bet = bet_from_rows(bet_df.to_dict(orient="records"))
+    codes = _codes_from_rows(codes_df.to_dict(orient="records"))
+
+    write_gzip_json(RAD_OUT_PATH, {"codes": codes, "emissions": emissions})
+    write_gzip_json(BET_OUT_PATH, bet)
+    return len(emissions), len(bet)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Download/parse NDX, write catalog + golden slice + license. Exit code."""
     parser = argparse.ArgumentParser(description="Build icrp107.json from ICRP-07.NDX")
@@ -344,8 +468,25 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Local LICENSE.ICRP-07 copy (SHA-256 still verified)",
     )
+    parser.add_argument(
+        "--spectra",
+        action="store_true",
+        help="Also build icrp107_rad.json.gz and icrp107_bet.json.gz from RadData",
+    )
+    parser.add_argument(
+        "--raddata-path",
+        type=Path,
+        default=None,
+        help="Local RadData_1.0.2.tar.gz (SHA-256 still verified) for --spectra",
+    )
     args = parser.parse_args(argv)
     try:
+        if args.spectra:
+            n_rad, n_bet = build_spectra(args.raddata_path)
+            print(f"Wrote {RAD_OUT_PATH} ({n_rad} nuclides)")
+            print(f"Wrote {BET_OUT_PATH} ({n_bet} nuclides)")
+            return 0
+
         ndx = _load_pinned(args.ndx_path, NDX_URL, NDX_SHA256, "NDX")
         license_bytes = _load_pinned(args.license_path, args.license_url, LICENSE_SHA256, "license")
         records, meta = parse_ndx_text(ndx.decode("iso-8859-1"))

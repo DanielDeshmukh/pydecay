@@ -1,0 +1,15 @@
+code_num,code_AN,description
+1.0,G,Gamma rays
+1.0,PG,Prompt gamma rays from spontaneous fission
+1.0,DG,Delayed gamma rays from spontaneous fission
+2.0,X,X rays
+3.0,AQ,Annihilation photons
+4.0,B+,Beta-plus particles
+5.0,B-,Beta-minus particles
+5.0,BD,Delayed beta particles from spontaneous fission
+6.0,IE,Internal conversion electrons
+7.0,AE,Auger electrons
+8.0,A,Alpha particles
+9.0,AR,Alpha recoil nuclei
+10.0,FF,Fission fragments
+11.0,N,Neutrons
