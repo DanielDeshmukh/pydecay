@@ -58,7 +58,6 @@ _ELEMENTS: tuple[str, ...] = (
 )
 _Z_BY_SYMBOL = {sym: i + 1 for i, sym in enumerate(_ELEMENTS)}
 _NAME_RE = re.compile(r"([A-Z][a-z]?)-(\d{1,3})([mn]?)")
-_NEUTRON_MODE_RE = re.compile(r"\d+n$")
 
 
 def sha256_file(path: Path) -> str:
@@ -280,8 +279,6 @@ def build_catalog(records: list[dict[str, Any]], fetched: str) -> dict[str, dict
     if len(set(names)) != len(names):
         raise DataFormatError("duplicate nuclide names in NDX records")
     for name in names:
-        if _NEUTRON_MODE_RE.search(name):
-            continue
         if normalize_nuclide_name(name) != name:
             raise DataFormatError(f"NDX name {name!r} is not in normal form")
 

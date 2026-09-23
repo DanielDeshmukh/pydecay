@@ -21,17 +21,17 @@ _REQUIRED_KEYS = (
     "fetched",
 )
 
-_NAME_RE = re.compile(r"^([A-Za-z]{1,2})-?(\d{1,3})([mM]?)$")
+_NAME_RE = re.compile(r"^([A-Za-z]{1,2})-?(\d{1,3})([mMnN]?)$")
 
 
 def normalize_nuclide_name(name: str) -> str:
-    """Normalize a nuclide name to canonical form like ``I-131`` or ``Tc-99m``."""
+    """Normalize a nuclide name to canonical form like ``I-131``, ``Tc-99m``, or ``Bi-212n``."""
     m = _NAME_RE.fullmatch(name.strip())
     if m is None:
         raise DataFormatError(f"cannot parse nuclide name {name!r}")
     element = m.group(1)[0].upper() + m.group(1)[1:].lower()
     mass = m.group(2)
-    meta = "m" if m.group(3) else ""
+    meta = m.group(3).lower()
     return f"{element}-{mass}{meta}"
 
 

@@ -1,6 +1,8 @@
 """Tests for Nuclide record validation and properties."""
 
+import json
 import math
+from pathlib import Path
 
 import pint
 import pytest
@@ -8,6 +10,9 @@ import pytest
 from pydecay.exceptions import DataFormatError, InvalidTimeError, UnitError
 from pydecay.nuclide import DecayMode, Nuclide, normalize_nuclide_name
 from pydecay.units import ureg
+
+ICRP_ART = Path(__file__).resolve().parents[1] / "src" / "pydecay" / "data" / "icrp107.json"
+SECOND_ISOMERS = ("Bi-212n", "Eu-152n", "Ir-190n", "Ir-192n", "Sb-124n", "Tb-156n")
 
 GOOD_RECORD = {
     "half_life_s": 692256.0,
@@ -29,6 +34,16 @@ def test_normalize_name():
         normalize_nuclide_name("not a nuclide")
 
 
+def test_normalize_name_accepts_n_suffix():
+    assert normalize_nuclide_name("Bi-212n") == "Bi-212n"
+    assert normalize_nuclide_name("bi-212n") == "Bi-212n"
+    assert normalize_nuclide_name("Bi-212N") == "Bi-212n"
+    assert normalize_nuclide_name("bi212n") == "Bi-212n"
+    assert normalize_nuclide_name("Tc-99m") == "Tc-99m"
+    with pytest.raises(DataFormatError):
+        normalize_nuclide_name("Bi-212x")
+
+
 def test_from_record_ok():
     nuc = Nuclide.from_record("I-131", GOOD_RECORD)
     assert nuc.name == "I-131"
@@ -36,6 +51,17 @@ def test_from_record_ok():
     assert nuc.decay_modes == (DecayMode(mode="beta-minus", branch=1.0),)
     assert nuc.source.startswith("SYNTHETIC")
     assert nuc.half_life_uncertainty_s is None
+
+
+@pytest.mark.skipif(not ICRP_ART.exists(), reason="icrp107.json not built yet")
+def test_from_record_second_isomers_from_icrp_catalog():
+    cat = json.loads(ICRP_ART.read_text(encoding="utf-8"))
+    for name in SECOND_ISOMERS:
+        assert name in cat, name
+        nuc = Nuclide.from_record(name, cat[name])
+        assert nuc.name == name
+        assert nuc.half_life_s > 0
+        assert nuc.decay_modes
 
 
 def test_from_record_missing_key():

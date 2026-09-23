@@ -87,12 +87,7 @@ def test_build_catalog_counts_and_closure():
 def test_ndx_names_already_normal_form():
     records, _ = parse_ndx_text(FULL_NDX.read_text(encoding="iso-8859-1"))
     for rec in records:
-        name = rec["name"]
-        if re.search(r"\d+n$", name):
-            # Neutron-mode NDX names (Bi-212n, ...) are outside
-            # normalize_nuclide_name's vocabulary; keep verbatim.
-            continue
-        assert normalize_nuclide_name(name) == name
+        assert normalize_nuclide_name(rec["name"]) == rec["name"]
 
 
 def test_pinned_sha_constants_match_plan():
