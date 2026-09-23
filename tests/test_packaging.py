@@ -62,3 +62,28 @@ def test_author_email_has_no_display_name_wrapper():
         assert "<" not in email and ">" not in email, (
             f"email field must be a bare address, not Name <email>: {email!r}"
         )
+
+
+def test_wheel_excludes_fetch_scripts_and_keeps_icrp_assets():
+    """Wheel ships ICRP catalog/license and omits network fetch helpers."""
+    import glob
+    import subprocess
+    import tempfile
+    import zipfile
+
+    root = Path(__file__).resolve().parents[1]
+    with tempfile.TemporaryDirectory() as td:
+        subprocess.run(
+            [sys.executable, "-m", "build", "--wheel", "-o", td],
+            cwd=root,
+            check=True,
+            capture_output=True,
+        )
+        wheels = glob.glob(str(Path(td) / "*.whl"))
+        assert len(wheels) == 1
+        with zipfile.ZipFile(wheels[0]) as zf:
+            names = zf.namelist()
+        assert any(n.endswith("pydecay/data/icrp107.json") for n in names)
+        assert any(n.endswith("pydecay/data/LICENSE.ICRP-07") for n in names)
+        assert not any("_fetch_icrp.py" in n for n in names)
+        assert not any("_fetch_iaea.py" in n for n in names)

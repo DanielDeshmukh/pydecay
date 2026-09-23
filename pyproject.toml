@@ -57,7 +57,7 @@ path = "src/pydecay/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pydecay"]
-exclude = ["**/_fetch_iaea.py"]
+exclude = ["**/_fetch_iaea.py", "**/_fetch_icrp.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
