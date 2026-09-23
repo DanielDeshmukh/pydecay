@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="pydecay">
+  <g stroke="#55b0f3" stroke-width="1.5">
+    <circle cx="16" cy="16" r="11.5" />
+    <circle cx="16" cy="16" r="5" />
+    <path d="M16 0v8M16 24v8M0 16h8M24 16h8" />
+  </g>
+  <circle cx="16" cy="16" r="1.8" fill="#55b0f3" />
+</svg>
