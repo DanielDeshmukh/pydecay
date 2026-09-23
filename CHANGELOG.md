@@ -5,6 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-23
+
+### Added
+- Top-level re-exports of existing unit and decay helpers (same names as
+  their home submodules): `to_seconds`, `bq_to_ci`, `ci_to_bq`,
+  `atoms_to_grams`, `grams_to_atoms`, `decay_constant`, `mean_lifetime_s`.
+  `__all__` grows from 16 to 23 names. No behavioural changes — pure
+  additive surface expansion.
+
 ## [0.3.0] - 2026-09-23
 
 ### Added

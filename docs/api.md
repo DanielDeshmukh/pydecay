@@ -167,6 +167,29 @@ chain = DecayChain([0.693, 0.0], names=["parent", "stable"])
 chain.at(t="1 days", n0={"parent": 1e6, "stable": 0.0})
 ```
 
+## Module-level helpers
+
+Promoted unit and decay kernels (same names as their home submodules).
+
+| Function | Signature | Description |
+|---|---|---|
+| `to_seconds` | `to_seconds(t) -> float` | Parse time (str / Quantity / number) to seconds; `t >= 0` finite |
+| `bq_to_ci` | `bq_to_ci(bq: float) -> float` | Becquerels → curies (`/ 3.7e10`) |
+| `ci_to_bq` | `ci_to_bq(ci: float) -> float` | Curies → becquerels (`* 3.7e10`) |
+| `atoms_to_grams` | `atoms_to_grams(n_atoms, atomic_mass_u) -> float` | Atom count → grams |
+| `grams_to_atoms` | `grams_to_atoms(m_g, atomic_mass_u) -> float` | Grams → atom count |
+| `decay_constant` | `decay_constant(half_life_s) -> float` | λ = ln2 / T½ (1/s); rejects ≤ 0 / non-finite |
+| `mean_lifetime_s` | `mean_lifetime_s(lambda_) -> float` | τ = 1 / λ (s); rejects λ ≤ 0 / non-finite |
+
+```python
+from pydecay import bq_to_ci, ci_to_bq, decay_constant, mean_lifetime_s, to_seconds
+
+to_seconds("8.02 days")
+bq_to_ci(3.7e10)                 # 1.0
+decay_constant(8.02 * 86400)     # 1/s
+mean_lifetime_s(decay_constant(8.02 * 86400))
+```
+
 ## Exception hierarchy
 
 All package-raised errors derive from `PyDecayError`.
@@ -209,5 +232,5 @@ E, A = beta_spectrum("Ac-226")
 
 ```python
 import pydecay
-pydecay.__version__  # "0.3.0"
+pydecay.__version__  # "0.4.0"
 ```

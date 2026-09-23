@@ -15,7 +15,7 @@ You need Python 3.10 or newer. That's it — NumPy, SciPy, and Pint come with it
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.3.0"
+print(pydecay.__version__)  # "0.4.0"
 ```
 
 ---
@@ -353,6 +353,31 @@ n = decayed_atoms(N0=N0, half_life="8.02 days", time="24 hours")
 **Don't** pass strings for `N0` or `A0` — use numbers or Quantities
 (otherwise you get `UnitError`).
 
+### Promoted helpers (top-level)
+
+Unit converters and decay kernels are also importable from the package root
+(same names as their home submodules `pydecay.units` / `pydecay.decay`):
+
+```python
+from pydecay import (
+    to_seconds,
+    bq_to_ci,
+    ci_to_bq,
+    atoms_to_grams,
+    grams_to_atoms,
+    decay_constant,
+    mean_lifetime_s,
+)
+
+to_seconds("8.02 days")            # seconds as float
+bq_to_ci(3.7e10)                   # 1.0
+ci_to_bq(1.0)                      # 3.7e10
+atoms_to_grams(1e18, 130.9061)     # grams
+grams_to_atoms(1.0, 238.0508)      # atom count
+decay_constant(8.02 * 86400)       # λ = ln2 / T½  (1/s)
+mean_lifetime_s(decay_constant(7.0))  # τ = 1 / λ  (s)
+```
+
 ---
 
 ## 9. Cheat sheet (copy-paste)
@@ -367,11 +392,18 @@ from pydecay import (
     remaining_fraction,
     emissions,
     beta_spectrum,
+    to_seconds,
+    bq_to_ci,
+    ci_to_bq,
+    atoms_to_grams,
+    grams_to_atoms,
+    decay_constant,
+    mean_lifetime_s,
     __version__,
 )
 
 # --- version ---
-print(__version__)  # "0.3.0"
+print(__version__)  # "0.4.0"
 
 # --- one isotope ---
 i131 = Nuclide.load("I-131")
