@@ -1,6 +1,7 @@
 """Tests for Inventory construction, closure, decay, and accessors."""
 
 import math
+from itertools import pairwise
 
 import pint
 import pytest
@@ -271,6 +272,70 @@ def test_cumulative_decays_covers_full_closure_and_mirrors_kind():
     assert set(cum) == set(inv.names)
     assert isinstance(cum["I-131"], pint.Quantity)
     assert cum["I-131"].to("atom").magnitude > 0.0
+
+
+def test_decay_time_series_shapes_and_plain_floats():
+    inv = Inventory({"Co-60": 1.0e18}, units="atoms")
+    times, series = inv.decay_time_series(1.0e6, npoints=11)
+    assert len(times) == 11
+    assert times[0] == pytest.approx(0.0)
+    assert times[-1] == pytest.approx(1.0e6)
+    assert set(series) == set(inv.names)
+    for vals in series.values():
+        assert len(vals) == 11
+        assert all(isinstance(v, float) for v in vals)
+    assert all(isinstance(t, float) for t in times)
+
+
+def test_decay_time_series_first_point_matches_numbers():
+    inv = Inventory({"I-131": 1.0e18}, units="atoms")
+    _, series = inv.decay_time_series(1.0e5, npoints=7)
+    for name, val in series.items():
+        assert val[0] == pytest.approx(inv.numbers()[name], rel=1e-12)
+
+
+def test_decay_time_series_parent_decays_monotonically():
+    inv = Inventory({"Co-60": 1.0e18}, units="atoms")
+    _, series = inv.decay_time_series(1.0e7, npoints=21)
+    parent = series["Co-60"]
+    assert all(b <= a for a, b in pairwise(parent))
+    assert parent[-1] < parent[0]
+
+
+def test_decay_time_series_log_grid():
+    inv = Inventory({"Co-60": 1.0e18}, units="atoms")
+    times, series = inv.decay_time_series(
+        1.0e6, npoints=9, time_scale="log", t_start=1.0
+    )
+    assert times[0] == pytest.approx(1.0)
+    assert times[-1] == pytest.approx(1.0e6)
+    ratios = [b / a for a, b in pairwise(times)]
+    assert ratios == pytest.approx([ratios[0]] * len(ratios), rel=1e-9)
+    assert set(series) == set(inv.names)
+
+
+def test_decay_time_series_npoints_too_small():
+    inv = Inventory({"Co-60": 1.0}, units="atoms")
+    with pytest.raises(ValueError, match="npoints"):
+        inv.decay_time_series(10.0, npoints=1)
+
+
+def test_decay_time_series_bad_time_scale():
+    inv = Inventory({"Co-60": 1.0}, units="atoms")
+    with pytest.raises(ValueError, match="time_scale"):
+        inv.decay_time_series(10.0, time_scale="logish")
+
+
+def test_decay_time_series_negative_t_end():
+    inv = Inventory({"Co-60": 1.0}, units="atoms")
+    with pytest.raises(InvalidTimeError):
+        inv.decay_time_series(-1.0)
+
+
+def test_decay_time_series_log_requires_positive_start():
+    inv = Inventory({"Co-60": 1.0}, units="atoms")
+    with pytest.raises(InvalidTimeError, match="t_start"):
+        inv.decay_time_series(100.0, time_scale="log", t_start=0.0)
 
 
 def test_accessors_cover_full_closure():

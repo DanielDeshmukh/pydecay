@@ -12,7 +12,7 @@ import numpy as np
 from scipy.linalg import expm  # type: ignore[import-untyped]
 
 from pydecay._solver import DEGENERATE_EPS, solve
-from pydecay.exceptions import ChainDefinitionError, UnitError
+from pydecay.exceptions import ChainDefinitionError, InvalidTimeError, UnitError
 from pydecay.graph import DecayGraph
 from pydecay.nuclide import Nuclide, normalize_nuclide_name
 from pydecay.units import (
@@ -317,6 +317,41 @@ class Inventory:
             else:
                 out[name] = float(val)
         return out
+
+    def decay_time_series(
+        self,
+        t_end: float | str | Any,
+        *,
+        npoints: int = 501,
+        time_scale: str = "linear",
+        t_start: float | str | Any = 0.0,
+    ) -> tuple[list[float], dict[str, list[float]]]:
+        """Atom-number time series from ``t_start`` to ``t_end`` over the closure.
+
+        Returns plain ``float`` seconds and plain ``float`` atom counts (does
+        not mirror Quantity kind). ``time_scale`` is ``"linear"`` or ``"log"``.
+        """
+        if not isinstance(npoints, int) or isinstance(npoints, bool) or npoints < 2:
+            raise ValueError(f"npoints must be an integer >= 2, got {npoints!r}")
+        if time_scale not in ("linear", "log"):
+            raise ValueError(f"time_scale must be 'linear' or 'log', got {time_scale!r}")
+        t0 = to_seconds(t_start)
+        t1 = to_seconds(t_end)
+        if time_scale == "log":
+            if t0 <= 0.0:
+                raise InvalidTimeError(f"log time_scale requires t_start > 0, got {t0}")
+            if t1 <= 0.0:
+                raise InvalidTimeError(f"log time_scale requires t_end > 0, got {t1}")
+            grid = np.logspace(np.log10(t0), np.log10(t1), num=npoints)
+        else:
+            grid = np.linspace(t0, t1, num=npoints)
+        names = self._graph.names
+        series: dict[str, list[float]] = {name: [] for name in names}
+        for t_s in grid:
+            state = solve(self._graph, self._n0, float(t_s), eps=self._eps)
+            for name, val in zip(names, state, strict=True):
+                series[name].append(float(val))
+        return [float(t) for t in grid], series
 
     def numbers(self) -> dict[str, Any]:
         """Atom counts of every species in the closure, mirroring constructor kind."""
