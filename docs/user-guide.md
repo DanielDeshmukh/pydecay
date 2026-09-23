@@ -105,7 +105,7 @@ print(i131.source)          # provenance, e.g. "ICRP-107"
 | `Nuclide.load(name)` | Load one by name (`"I-131"`, `"Co-60"`, `"Tc-99m"`) |
 | `Nuclide.load_all()` | Dict of **all** 1498 bundled records |
 | `.half_life` / `.half_life_s` | Half-life (Quantity or seconds) |
-| `.lambda_` | Decay constant λ = ln2 / half-life |
+| `.lambda_` | Decay constant λ = ln2 / half-life (`0.0` if stable) |
 | `.activity(N, t=...)` | Activity of N atoms after time t |
 | `.decay_modes` | Decay modes + branch fractions |
 | `.source` / `.source_url` / `.fetched` | Where the data came from |
@@ -304,7 +304,7 @@ All errors inherit from `PyDecayError`.
 |---|---|
 | `NuclideNotFoundError` | Typo in nuclide name: `Nuclide.load("Xx-999")` |
 | `InvalidTimeError` | Negative or infinite time; log-series bounds ≤ 0 |
-| `InvalidHalfLifeError` | Half-life ≤ 0 or NaN |
+| `InvalidHalfLifeError` | Half-life ≤ 0 or NaN in decay helpers (`Nuclide.lambda_` reports 0 for stable) |
 | `ChainDefinitionError` | Bad chain, empty/duplicate Inventory seeds, progeny cycle |
 | `DataFormatError` | Broken data record, or spectra on a stable nuclide |
 | `UnitError` | Bad unit string, or string on `N0` / `A0` / Inventory amount |

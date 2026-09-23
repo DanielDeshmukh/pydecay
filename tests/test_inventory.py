@@ -12,6 +12,7 @@ from pydecay.exceptions import (
     DataFormatError,
     InvalidTimeError,
     NuclideNotFoundError,
+    PyDecayError,
     UnitError,
 )
 from pydecay.inventory import Inventory
@@ -316,13 +317,13 @@ def test_decay_time_series_log_grid():
 
 def test_decay_time_series_npoints_too_small():
     inv = Inventory({"Co-60": 1.0}, units="atoms")
-    with pytest.raises(ValueError, match="npoints"):
+    with pytest.raises(PyDecayError, match="npoints"):
         inv.decay_time_series(10.0, npoints=1)
 
 
 def test_decay_time_series_bad_time_scale():
     inv = Inventory({"Co-60": 1.0}, units="atoms")
-    with pytest.raises(ValueError, match="time_scale"):
+    with pytest.raises(PyDecayError, match="time_scale"):
         inv.decay_time_series(10.0, time_scale="logish")
 
 
@@ -330,6 +331,12 @@ def test_decay_time_series_negative_t_end():
     inv = Inventory({"Co-60": 1.0}, units="atoms")
     with pytest.raises(InvalidTimeError):
         inv.decay_time_series(-1.0)
+
+
+def test_decay_time_series_reversed_linear_range():
+    inv = Inventory({"Co-60": 1.0}, units="atoms")
+    with pytest.raises(InvalidTimeError, match="t_start"):
+        inv.decay_time_series(1.0, t_start=10.0)
 
 
 def test_decay_time_series_log_requires_positive_start():
@@ -345,6 +352,35 @@ def test_accessors_cover_full_closure():
     assert set(inv.activities()) == expected
     assert set(inv.masses()) == expected
     assert set(inv.half_lives()) == expected
+
+
+def test_noisy_branching_rows_construct():
+    # ICRP published rows that sum slightly above 1 (worst ~1.000095).
+    for name in ("Ac-226", "Am-238", "Au-187", "Dy-153"):
+        inv = Inventory({name: 1.0}, units="atoms")
+        assert name in inv.names
+
+
+def test_noisy_branching_rows_normalized_in_graph():
+    inv = Inventory({"Ac-226": 1.0}, units="atoms")
+    i = inv.names.index("Ac-226")
+    row = inv._graph.fractions[i]
+    assert math.fsum(row) == pytest.approx(1.0, abs=1e-12)
+
+
+def test_inventory_constructs_for_catalog_noisy_seeds():
+    records = Nuclide._bundled_records()
+    noisy = []
+    for name, rec in records.items():
+        if rec.get("is_stable"):
+            continue
+        branches = rec.get("branching") or []
+        if branches and math.fsum(float(b) for b in branches) > 1.0 + 1e-12:
+            noisy.append(name)
+    assert noisy, "expected some catalog rows with branching sum > 1"
+    for name in noisy:
+        inv = Inventory({name: 1.0}, units="atoms")
+        assert name in inv.names
 
 
 def test_activity_is_lambda_times_n():

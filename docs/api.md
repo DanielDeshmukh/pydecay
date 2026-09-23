@@ -67,7 +67,7 @@ mass is in unified atomic mass units (u).
 
 | Member | Type | Description |
 |---|---|---|
-| `lambda_` | `float` (property) | Decay constant in 1/s |
+| `lambda_` | `float` (property) | Decay constant in 1/s; `0.0` for stable / infinite half-life |
 | `half_life` | `pint.Quantity` (property) | Half-life as a Quantity in seconds |
 | `activity(N, t=0)` | `-> float \| Quantity` | `A(t) = lambda * N * exp(-lambda * t)` in Bq, mirroring `N`'s kind |
 | `half_life_s` | `float` | Half-life in plain seconds |
@@ -121,8 +121,11 @@ Quantity) is mirrored by accessors and preserved across `decay`.
 | `.units` | `str` | Canonical unit label for plain-number amounts |
 
 `time_scale` is `"linear"` or `"log"`; log grids require `t_start > 0` and
-`t_end > 0` (`InvalidTimeError`). Negative time raises `InvalidTimeError`.
-`npoints < 2` raises `ValueError`. Progeny cycles raise `ChainDefinitionError`.
+`t_end > 0` (`InvalidTimeError`). Negative or reversed time ranges raise
+`InvalidTimeError`. `npoints < 2` or an unknown `time_scale` raises
+`PyDecayError`. Progeny cycles raise `ChainDefinitionError`.
+Catalog branching rows that sum slightly above 1 (ICRP rounding noise,
+within 0.035) are renormalized to exactly 1 when building the joint graph.
 
 ```python
 from pydecay import Inventory
@@ -170,11 +173,11 @@ All package-raised errors derive from `PyDecayError`.
 
 | Exception | Trigger |
 |---|---|
-| `PyDecayError` | Base class; also wraps scipy failures and non-finite solver output (never returns NaN) |
+| `PyDecayError` | Base class; also wraps scipy failures, non-finite solver output (never returns NaN), and invalid `decay_time_series` arguments (`npoints` / `time_scale`) |
 | `NuclideNotFoundError` | Unknown isotope name at load time |
-| `InvalidHalfLifeError` | λ ≤ 0, NaN, or non-finite half-life / decay constant |
-| `InvalidTimeError` | `t < 0` or non-finite time; log-series bounds ≤ 0 |
-| `ChainDefinitionError` | Empty chain, length mismatch, branching fractions sum > 1, λ = 0 on a non-terminal species, unknown species in `n0`; also empty/duplicate Inventory seeds, progeny cycle, or closure depth > 256 |
+| `InvalidHalfLifeError` | λ ≤ 0, NaN, or non-finite half-life / decay constant in `decay` helpers. `Nuclide.lambda_` / `.activity()` do **not** raise for stable nuclides — they report λ = 0 / 0 Bq |
+| `InvalidTimeError` | `t < 0` or non-finite time; log-series bounds ≤ 0; reversed or negative `decay_time_series` range |
+| `ChainDefinitionError` | Empty chain, length mismatch, branching fractions sum > 1 (beyond catalog noise tol), λ = 0 on a non-terminal species, unknown species in `n0`; also empty/duplicate Inventory seeds, progeny cycle, or closure depth > 256 |
 | `DataFormatError` | Bundled JSON record missing required keys or carrying non-parseable values; unparseable nuclide name |
 | `UnitError` | Unparseable unit string, dimensionally wrong pint input, or string on `N0` / `A0` / Inventory amount |
 

@@ -12,7 +12,12 @@ import numpy as np
 from scipy.linalg import expm  # type: ignore[import-untyped]
 
 from pydecay._solver import DEGENERATE_EPS, solve
-from pydecay.exceptions import ChainDefinitionError, InvalidTimeError, UnitError
+from pydecay.exceptions import (
+    ChainDefinitionError,
+    InvalidTimeError,
+    PyDecayError,
+    UnitError,
+)
 from pydecay.graph import DecayGraph
 from pydecay.nuclide import Nuclide, normalize_nuclide_name
 from pydecay.units import (
@@ -27,6 +32,9 @@ from pydecay.units import (
 
 _MAX_CLOSURE_DEPTH = 256
 """Defense-in-depth cap on progeny BFS depth (catalog chains are far shorter)."""
+
+_BRANCH_ROW_SUM_TOL = 0.035
+"""Allowed overshoot when catalog branching rows sum slightly above 1 (ICRP noise)."""
 
 _UNITS_ALIASES: dict[str, str] = {
     "bq": "Bq",
@@ -131,7 +139,18 @@ def _closure(seeds: Sequence[str]) -> tuple[DecayGraph, tuple[Nuclide, ...]]:
     for nm in order:
         row = [0.0] * len(order)
         for child, branch in edges[nm]:
-            row[index[child]] = branch
+            row[index[child]] += branch
+        row_sum = math.fsum(row)
+        if row_sum > 1.0:
+            if row_sum > 1.0 + _BRANCH_ROW_SUM_TOL:
+                raise ChainDefinitionError(
+                    f"branching fractions for {nm!r} sum to {row_sum} > 1 "
+                    f"(tolerance {_BRANCH_ROW_SUM_TOL})"
+                )
+            # ICRP rows can sum slightly above 1 from published rounding noise;
+            # scale to exactly 1 so DecayGraph's strict check and conservation hold.
+            scale = 1.0 / row_sum
+            row = [f * scale for f in row]
         rows.append(tuple(row))
     graph = DecayGraph(lambdas=lambdas, names=tuple(order), fractions=tuple(rows))
     return graph, tuple(by_name[nm] for nm in order)
@@ -334,11 +353,15 @@ class Inventory:
         not mirror Quantity kind). ``time_scale`` is ``"linear"`` or ``"log"``.
         """
         if not isinstance(npoints, int) or isinstance(npoints, bool) or npoints < 2:
-            raise ValueError(f"npoints must be an integer >= 2, got {npoints!r}")
+            raise PyDecayError(f"npoints must be an integer >= 2, got {npoints!r}")
         if time_scale not in ("linear", "log"):
-            raise ValueError(f"time_scale must be 'linear' or 'log', got {time_scale!r}")
+            raise PyDecayError(f"time_scale must be 'linear' or 'log', got {time_scale!r}")
         t0 = to_seconds(t_start)
         t1 = to_seconds(t_end)
+        if t0 < 0.0:
+            raise InvalidTimeError(f"t_start must be >= 0, got {t0}")
+        if t1 < 0.0:
+            raise InvalidTimeError(f"t_end must be >= 0, got {t1}")
         if time_scale == "log":
             if t0 <= 0.0:
                 raise InvalidTimeError(f"log time_scale requires t_start > 0, got {t0}")
@@ -346,6 +369,10 @@ class Inventory:
                 raise InvalidTimeError(f"log time_scale requires t_end > 0, got {t1}")
             grid = np.logspace(np.log10(t0), np.log10(t1), num=npoints)
         else:
+            if t0 > t1:
+                raise InvalidTimeError(
+                    f"linear decay_time_series requires t_start <= t_end, got {t0} > {t1}"
+                )
             grid = np.linspace(t0, t1, num=npoints)
         names = self._graph.names
         series: dict[str, list[float]] = {name: [] for name in names}

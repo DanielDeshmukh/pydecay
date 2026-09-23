@@ -19,6 +19,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Hypothesis property invariants for `Inventory` (composition, conservation,
   immutability, cumulative balance, series endpoints).
 
+### Changed
+- `Nuclide.lambda_` / `Nuclide.activity` on stable or infinite half-life now
+  return `0.0` / `0 Bq` (needed for progeny end-caps). The free function
+  `decay.decay_constant(inf)` still raises `InvalidHalfLifeError`.
+- `decay_time_series` argument errors (`npoints`, `time_scale`) raise
+  `PyDecayError` instead of bare `ValueError`, restoring the documented
+  "all package errors derive from `PyDecayError`" contract.
+- Catalog branching rows that sum slightly above 1 (ICRP rounding noise,
+  within 0.035) are renormalized when building an `Inventory` closure so
+  every non-stable seed can construct (previously ~17% raised
+  `ChainDefinitionError`).
+
 ### Fixed
 - Solver accepts and zeros tiny negative atom counts (~1e-16 numerical noise
   on stable end-caps) so chained `Inventory.decay` stays composable;
