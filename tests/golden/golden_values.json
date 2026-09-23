@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-09-23",
+  "entries": [
+    {
+      "id": "tc99m_halflife_iaea",
+      "kind": "nuclide_half_life",
+      "nuclide": "Tc-99m",
+      "half_life_s": 21625.920000000002,
+      "rel_tol": 1e-12,
+      "source": "IAEA Live Chart of Nuclides",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=tc99m",
+      "note": "Bundled IAEA fetch 2026-09-22; frozen exact bundle half-life."
+    },
+    {
+      "id": "i131_halflife_iaea",
+      "kind": "nuclide_half_life",
+      "nuclide": "I-131",
+      "half_life_s": 693377.28,
+      "rel_tol": 1e-12,
+      "source": "IAEA Live Chart of Nuclides",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=i131",
+      "note": "Bundled IAEA fetch 2026-09-22; frozen exact bundle half-life."
+    },
+    {
+      "id": "co60_halflife_iaea",
+      "kind": "nuclide_half_life",
+      "nuclide": "Co-60",
+      "half_life_s": 166344192.0,
+      "rel_tol": 1e-12,
+      "source": "IAEA Live Chart of Nuclides",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=co60",
+      "note": "Bundled IAEA fetch 2026-09-22; frozen exact bundle half-life."
+    },
+    {
+      "id": "cs137_halflife_iaea",
+      "kind": "nuclide_half_life",
+      "nuclide": "Cs-137",
+      "half_life_s": 949252608.0,
+      "rel_tol": 1e-12,
+      "source": "IAEA Live Chart of Nuclides",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=cs137",
+      "note": "Bundled IAEA fetch 2026-09-22; frozen exact bundle half-life."
+    },
+    {
+      "id": "c14_halflife_iaea",
+      "kind": "nuclide_half_life",
+      "nuclide": "C-14",
+      "half_life_s": 179878320000.0,
+      "rel_tol": 1e-12,
+      "source": "IAEA Live Chart of Nuclides",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=c14",
+      "note": "Bundled IAEA fetch 2026-09-22; frozen exact bundle half-life."
+    },
+    {
+      "id": "u238_halflife_iaea",
+      "kind": "nuclide_half_life",
+      "nuclide": "U-238",
+      "half_life_s": 1.409993568e+17,
+      "rel_tol": 1e-12,
+      "source": "IAEA Live Chart of Nuclides",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=u238",
+      "note": "Bundled IAEA fetch 2026-09-22; frozen exact bundle half-life."
+    },
+    {
+      "id": "co60_activity_10y",
+      "kind": "single_activity",
+      "nuclide": "Co-60",
+      "a0_bq": 1e6,
+      "t_s": 315576000,
+      "expected_bq": 268477.54768988496,
+      "rel_tol": 1e-9,
+      "source": "analytic: A0*exp(-ln2/T_half*t) with IAEA T_half",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=co60",
+      "note": "Formula A(t)=A0*exp(-ln2/T_half*t); t=10*31557600 s (10 Julian years)."
+    },
+    {
+      "id": "tc99m_activity_6h",
+      "kind": "single_activity",
+      "nuclide": "Tc-99m",
+      "a0_bq": 500,
+      "t_s": 21600,
+      "expected_bq": 250.2077812185201,
+      "rel_tol": 1e-9,
+      "source": "analytic: A0*exp(-ln2/T_half*t) with IAEA T_half",
+      "source_url": "https://www-nds.iaea.org/relnsd/v0/data?fields=ground_states&nuclides=tc99m",
+      "note": "Formula A(t)=A0*exp(-ln2/T_half*t); t=6*3600 s."
+    },
+    {
+      "id": "c14_fraction_5730y",
+      "kind": "remaining_fraction",
+      "nuclide": "C-14",
+      "t_s": 180825048000,
+      "expected": 0.49817925166675786,
+      "rel_tol": 1e-9,
+      "source": "analytic: exp(-ln2/T_half*t) with IAEA T_half",
+      "note": "N(t)/N0=exp(-ln2/T_half*t); t=5730*31557600 s; IAEA T_half for C-14."
+    },
+    {
+      "id": "u238_fraction_1gy",
+      "kind": "remaining_fraction",
+      "nuclide": "U-238",
+      "t_s": 31557600000000000,
+      "expected": 0.8562988025248168,
+      "rel_tol": 1e-9,
+      "source": "analytic: exp(-ln2/T_half*t) with IAEA T_half",
+      "note": "N(t)/N0=exp(-ln2/T_half*t); t=1e9*31557600 s; IAEA T_half for U-238."
+    },
+    {
+      "id": "one_half_life_identity",
+      "kind": "remaining_fraction",
+      "half_life_s": 1.0,
+      "t_s": 1.0,
+      "expected": 0.5,
+      "rel_tol": 1e-12,
+      "source": "analytic: exp(-ln2/T_half*t) at t=T_half equals 1/2",
+      "note": "Identity check: at t=T_half the remaining fraction is exactly 1/2."
+    },
+    {
+      "id": "sr90_y90_atoms_30y",
+      "kind": "chain_atoms",
+      "chain": {
+        "type": "linear",
+        "isotopes": ["Sr-90", "Y-90"]
+      },
+      "t_s": 946728000,
+      "n0": {"Sr-90": 1.0},
+      "expected": {
+        "Sr-90": 0.4871023279204198,
+        "Y-90": 0.00012314011577117917
+      },
+      "rel_tol": 1e-9,
+      "source": "analytic: Bateman linear chain with IAEA bundled half-lives",
+      "note": "Linear Sr-90 -> Y-90 chain from bundled IAEA half-lives; t=30*31557600 s; n0 parent=1."
+    },
+    {
+      "id": "branch_p_d1_d2_10s",
+      "kind": "chain_atoms",
+      "chain": {
+        "type": "branching",
+        "parent": "P",
+        "branches": {"D1": 0.6, "D2": 0.4},
+        "lambdas": {"P": 0.1, "D1": 0.05, "D2": 0.02}
+      },
+      "t_s": 10.0,
+      "n0": {"P": 1.0},
+      "expected": {
+        "P": 0.36787944117144233,
+        "D1": 0.2863814622494293,
+        "D2": 0.2254256559532698
+      },
+      "rel_tol": 1e-9,
+      "source": "analytic: star branching closed form",
+      "note": "Star-topology closed form (feed integral) with synthetic lambdas, not IAEA topology; default n0 parent=1."
+    }
+  ]
+}
