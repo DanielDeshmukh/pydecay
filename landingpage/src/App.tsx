@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import {
   ArrowRight,
@@ -19,6 +19,34 @@ const PYPI_URL = "https://pypi.org/project/pydecay/";
 // Mirrors --accent in index.css; SVG presentation attributes can't read CSS variables.
 const ACCENT = "#55b0f3";
 
+function currentPath(): string {
+  const path = window.location.pathname.replace(/\/+$/, "");
+  return path === "" ? "/" : path;
+}
+
+function navigate(to: string) {
+  const next = new URL(to, window.location.origin);
+  if (next.pathname !== window.location.pathname) {
+    window.history.pushState(null, "", next.pathname);
+    window.dispatchEvent(new PopStateEvent("popstate"));
+  } else {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+}
+
+function scrollToId(id: string) {
+  const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior, block: "start" }), 30);
+}
+
+function useInternalNav() {
+  return (to: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    navigate(to);
+  };
+}
+
 function LogoMark() {
   return (
     <span className="logo-mark" aria-hidden="true">
@@ -32,27 +60,28 @@ function LogoMark() {
   );
 }
 
-function SiteHeader({ hash }: { hash: string }) {
+function SiteHeader({ path }: { path: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const isDocs = hash.startsWith("#/docs");
+  const nav = useInternalNav();
+  const isDocs = path === "/docs" || path.startsWith("/docs/");
   const links = [
-    { label: "OVERVIEW", href: "#/", active: hash === "#/" || hash === "#top" },
-    { label: "PLAYGROUND", href: "#playground", active: hash === "#playground" },
-    { label: "ELEMENTS", href: "#elements", active: hash === "#elements" },
-    { label: "DOCS", href: "#/docs", active: isDocs },
+    { label: "OVERVIEW", href: "/", active: path === "/" },
+    { label: "PLAYGROUND", href: "/playground", active: path === "/playground" },
+    { label: "ELEMENTS", href: "/elements", active: path === "/elements" },
+    { label: "DOCS", href: "/docs", active: isDocs },
   ];
 
   return (
     <header className="site-header">
       <div className="header-inner">
-        <a href="#/" className="brand-link" onClick={() => setMenuOpen(false)} aria-label="pydecay home">
+        <a href="/" className="brand-link" onClick={(event) => { nav("/")(event); setMenuOpen(false); }} aria-label="pydecay home">
           <LogoMark />
           <span>pydecay<span className="brand-period">.</span></span>
         </a>
 
         <nav className="desktop-nav" aria-label="Main navigation">
           {links.map((link) => (
-            <a className={link.active ? "nav-active" : ""} href={link.href} key={link.label}>
+            <a className={link.active ? "nav-active" : ""} href={link.href} key={link.label} onClick={nav(link.href)}>
               {link.label}
             </a>
           ))}
@@ -78,7 +107,7 @@ function SiteHeader({ hash }: { hash: string }) {
       {menuOpen && (
         <nav className="mobile-nav" aria-label="Mobile navigation">
           {links.map((link) => (
-            <a href={link.href} key={link.label} onClick={() => setMenuOpen(false)}>
+            <a href={link.href} key={link.label} onClick={(event) => { nav(link.href)(event); setMenuOpen(false); }}>
               {link.label}<ArrowUpRight size={18} />
             </a>
           ))}
@@ -185,6 +214,8 @@ function HeroPlot() {
 }
 
 function Hero() {
+  const nav = useInternalNav();
+
   return (
     <section className="hero" id="top">
       <HeroPlot />
@@ -198,8 +229,18 @@ function Hero() {
           <h2>Model what remains.</h2>
           <p>Radioactive decay mathematics for Python. From a single isotope to branching decay chains, with precision built in.</p>
           <div className="hero-actions">
-            <a href="#/docs" className="button-primary">READ THE DOCS <ArrowUpRight size={18} /></a>
-            <a href="#playground" className="text-link">EXPLORE THE PLAYGROUND <ArrowRight size={17} /></a>
+            <a href="/docs" className="button-primary" onClick={nav("/docs")}>READ THE DOCS <ArrowUpRight size={18} /></a>
+            <a
+              href="/playground"
+              className="text-link"
+              onClick={(event) => {
+                event.preventDefault();
+                navigate("/playground");
+                scrollToId("playground");
+              }}
+            >
+              EXPLORE THE PLAYGROUND <ArrowRight size={17} />
+            </a>
           </div>
         </motion.div>
       </div>
@@ -753,6 +794,8 @@ function Verification() {
 }
 
 function ClosingCallout() {
+  const nav = useInternalNav();
+
   return (
     <section className="closing-section section-shell">
       <Reveal className="closing-inner">
@@ -760,7 +803,7 @@ function ClosingCallout() {
         <h2>Time to make<br /><span>something precise.</span></h2>
         <div className="closing-bottom">
           <p>Install the package, read the guide, and put reliable decay mathematics to work.</p>
-          <a href="#/docs" className="button-primary">OPEN DOCUMENTATION <ArrowUpRight size={18} /></a>
+          <a href="/docs" className="button-primary" onClick={nav("/docs")}>OPEN DOCUMENTATION <ArrowUpRight size={18} /></a>
         </div>
       </Reveal>
     </section>
@@ -772,9 +815,8 @@ function HomePage() {
 
   function tryNuclide(id: string) {
     setSelectedId(id);
-    window.location.hash = "#playground";
-    const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-    document.getElementById("playground")?.scrollIntoView({ behavior });
+    navigate("/playground");
+    scrollToId("playground");
   }
 
   return (
@@ -816,8 +858,15 @@ function DocsSection({ id, number, title, children }: { id: string; number: stri
   );
 }
 
-function DocsPage({ hash }: { hash: string }) {
-  const activeSection = hash.split("/")[2] || "installation";
+function DocsPage({ path }: { path: string }) {
+  const activeSection = path.startsWith("/docs/") ? path.slice("/docs/".length) || "installation" : "installation";
+
+  function goSection(event: MouseEvent<HTMLAnchorElement>, id: string) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    navigate(`/docs/${id}`);
+    scrollToId(id);
+  }
 
   return (
     <main className="docs-page">
@@ -833,7 +882,12 @@ function DocsPage({ hash }: { hash: string }) {
           <span className="docs-sidebar-label">CONTENTS / 08</span>
           <nav>
             {docsNavigation.map((item, index) => (
-              <a key={item.id} href={`#/docs/${item.id}`} className={activeSection === item.id ? "current" : ""}>
+              <a
+                key={item.id}
+                href={`/docs/${item.id}`}
+                className={activeSection === item.id ? "current" : ""}
+                onClick={(event) => goSection(event, item.id)}
+              >
                 <span>{String(index + 1).padStart(2, "0")}</span>{item.label}
               </a>
             ))}
@@ -917,13 +971,15 @@ function DocsPage({ hash }: { hash: string }) {
 }
 
 function Footer() {
+  const nav = useInternalNav();
+
   return (
     <footer className="site-footer section-shell">
       <div className="footer-top">
-        <a href="#/" className="footer-brand">pydecay<span>.</span></a>
+        <a href="/" className="footer-brand" onClick={nav("/")}>pydecay<span>.</span></a>
         <p>Scientific decay mathematics,<br />made usable.</p>
         <div className="footer-links">
-          <a href="#/docs">DOCUMENTATION <ArrowUpRight size={15} /></a>
+          <a href="/docs" onClick={nav("/docs")}>DOCUMENTATION <ArrowUpRight size={15} /></a>
           <a href={GITHUB_URL} target="_blank" rel="noreferrer noopener">GITHUB <ArrowUpRight size={15} /></a>
           <a href={PYPI_URL} target="_blank" rel="noreferrer noopener">PYPI <ArrowUpRight size={15} /></a>
         </div>
@@ -938,33 +994,34 @@ function Footer() {
 }
 
 export default function App() {
-  const [hash, setHash] = useState(() => window.location.hash || "#/");
-  const isDocs = hash.startsWith("#/docs");
+  const [path, setPath] = useState(currentPath);
+  const isDocs = path === "/docs" || path.startsWith("/docs/");
 
   useEffect(() => {
     document.title = isDocs ? "Documentation | pydecay" : "pydecay | Radioactive Decay Mathematics for Python";
   }, [isDocs]);
 
   useEffect(() => {
-    const onHashChange = () => setHash(window.location.hash || "#/");
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    const onPopState = () => setPath(currentPath());
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
-      const target = hash.startsWith("#/docs/") ? hash.split("/")[2] : hash.startsWith("#") && !hash.startsWith("#/") ? hash.slice(1) : null;
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      if (target) document.getElementById(target)?.scrollIntoView({ behavior, block: "start" });
+      if (path === "/playground") document.getElementById("playground")?.scrollIntoView({ behavior, block: "start" });
+      else if (path === "/elements") document.getElementById("elements")?.scrollIntoView({ behavior, block: "start" });
+      else if (path.startsWith("/docs/")) document.getElementById(path.slice("/docs/".length))?.scrollIntoView({ behavior, block: "start" });
       else window.scrollTo({ top: 0, behavior: "auto" });
     }, 30);
     return () => window.clearTimeout(timeout);
-  }, [hash, isDocs]);
+  }, [path]);
 
   return (
     <MotionConfig reducedMotion="user">
-      <SiteHeader hash={hash} />
-      {isDocs ? <DocsPage hash={hash} /> : <HomePage />}
+      <SiteHeader path={path} />
+      {isDocs ? <DocsPage path={path} /> : <HomePage />}
       <Footer />
     </MotionConfig>
   );
