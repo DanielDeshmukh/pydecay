@@ -765,10 +765,53 @@ function PeriodicTable({ onTryNuclide }: { onTryNuclide: (id: string) => void })
 }
 
 function Verification() {
+  const [openId, setOpenId] = useState<string | null>(null);
   const checks = [
-    { number: "01", title: "Known values, independently asserted.", detail: "1000 Bq of I-131 becomes 500 Bq after one half-life and 31.25 Bq after five." },
-    { number: "02", title: "Solvers checked against each other.", detail: "Bateman and matrix-exponential results agree to 1e-10; near-equal rates stay finite." },
-    { number: "03", title: "Another library, another answer.", detail: "Differential tests against radioactivedecay (ICRP-107) fail beyond 1e-3 relative drift." },
+    {
+      number: "01",
+      title: "Known values, independently asserted.",
+      detail: "1000 Bq of I-131 becomes 500 Bq after one half-life and 31.25 Bq after five.",
+      file: "tests/test_known_values.py",
+      note: "Expected values are re-derived from the bundled half-lives themselves — the reference table is not the assertion source.",
+      snippet: `def test_i131_reference_example_explicit():
+    i131 = Nuclide.load("I-131")
+    a1 = decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life)
+    a5 = decayed_activity(A0=1000.0, half_life=i131.half_life, time=5 * i131.half_life)
+    assert a1 == pytest.approx(500.0, rel=1e-12)
+    assert a5 == pytest.approx(31.25, rel=1e-12)`,
+    },
+    {
+      number: "02",
+      title: "Solvers checked against each other.",
+      detail: "Bateman and matrix-exponential results agree to 1e-10; near-equal rates stay finite.",
+      file: "tests/test_solver.py",
+      note: "Closed-form Bateman and scipy.linalg.expm paths are asserted equal; near-degenerate λ falls back without NaNs.",
+      snippet: `def test_bateman_agrees_with_expm_well_separated():
+    g = DecayGraph.linear([1.0, 0.01, 0.0002])
+    for t in (0.5, 10.0, 100.0):
+        np.testing.assert_allclose(solve(g, [1e9, 0.0, 0.0], t),
+                                   _expm_reference(g, [1e9, 0.0, 0.0], t),
+                                   rtol=1e-10, atol=1e-20)
+
+def test_spec_2_3_near_degenerate_is_finite():
+    out = solve(DecayGraph.linear([0.6931, 0.6932]), [1.0, 0.0], 1.0)
+    assert np.all(np.isfinite(out))`,
+    },
+    {
+      number: "03",
+      title: "Another library, another answer.",
+      detail: "Differential tests against radioactivedecay (ICRP-107) fail beyond 1e-3 relative drift.",
+      file: "tests/test_crosscheck.py",
+      note: "Every overlapping nuclide is compared half-life to half-life; IAEA vs ICRP-107 source gaps are listed as accepted deviations.",
+      snippet: `REL_TOL = 1e-3
+
+def test_half_life_drift_within_tolerance(capsys):
+    for name in names:
+        rel = abs(ours[name].half_life_s - rr_half_life(name)) / rr_half_life(name)
+        if rel > REL_TOL and name not in ACCEPTED_DEVIATIONS:
+            failures.append((name, rel))
+    assert not failures, f"half-life drift beyond {REL_TOL}: {failures}"`,
+    },
   ];
 
   return (
@@ -780,14 +823,40 @@ function Verification() {
         description="Scientific software earns trust through reproducible comparisons, not just clean-looking curves."
       />
       <Reveal className="verification-list">
-        {checks.map((check) => (
-          <div className="verification-row" key={check.number}>
-            <span>{check.number} / TEST</span>
-            <h3>{check.title}</h3>
-            <p>{check.detail}</p>
-            <span className="verification-plus">+</span>
-          </div>
-        ))}
+        {checks.map((check) => {
+          const open = openId === check.number;
+          const panelId = `verification-panel-${check.number}`;
+          return (
+            <div className={open ? "verification-row is-open" : "verification-row"} key={check.number}>
+              <span className="verification-meta">{check.number} / TEST</span>
+              <h3>{check.title}</h3>
+              <p>{check.detail}</p>
+              <button
+                type="button"
+                className="verification-plus"
+                aria-expanded={open}
+                aria-controls={panelId}
+                aria-label={open ? `Collapse test ${check.number}` : `Expand test ${check.number}`}
+                onClick={() => setOpenId(open ? null : check.number)}
+              >
+                <span aria-hidden="true">{open ? "×" : "+"}</span>
+              </button>
+              <div className="verification-detail" id={panelId} hidden={!open}>
+                <span className="verification-file">{check.file}</span>
+                <p>{check.note}</p>
+                <pre className="verification-snippet"><code>{check.snippet}</code></pre>
+                <a
+                  className="verification-source"
+                  href={`${GITHUB_URL}/blob/main/${check.file}`}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  VIEW SOURCE <ArrowUpRight size={14} />
+                </a>
+              </div>
+            </div>
+          );
+        })}
       </Reveal>
     </section>
   );
