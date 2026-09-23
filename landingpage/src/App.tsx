@@ -611,7 +611,7 @@ function ElementPanel({ element, onTryNuclide }: { element: ElementInfo; onTryNu
 
   return (
     <aside className="element-panel" id="element-details" aria-label="Selected element information" aria-live="polite">
-      <div className="element-panel-header"><span>ELEMENT FILE / {String(element.number).padStart(3, "0")}</span><span className="panel-crosshair">+</span></div>
+      <div className="element-panel-header"><span>ELEMENT FILE / {String(element.number).padStart(3, "0")}</span><span className="panel-crosshair" aria-hidden="true">+</span></div>
       <motion.div
         key={element.number}
         className="element-panel-body"
