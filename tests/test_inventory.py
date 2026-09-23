@@ -275,6 +275,42 @@ def test_cumulative_decays_covers_full_closure_and_mirrors_kind():
     assert cum["I-131"].to("atom").magnitude > 0.0
 
 
+def test_instantaneous_rates_single_isotope_matches_minus_lambda_n():
+    nuc = Nuclide.load("Co-60")
+    n0 = 1.0e18
+    inv = Inventory({"Co-60": n0}, units="atoms")
+    rates = inv.instantaneous_rates()
+    assert set(rates) == set(inv.names)
+    assert rates["Co-60"] == pytest.approx(-nuc.lambda_ * n0, rel=1e-12)
+    # Stable daughter Ni-60: pure ingrowth from parent decays at t=0.
+    assert rates["Ni-60"] == pytest.approx(nuc.lambda_ * n0, rel=1e-12)
+
+
+def test_instantaneous_rates_finite_difference_and_mirrors_kind():
+    n0 = 1.0e18
+    inv = Inventory({"I-131": n0}, units="atoms")
+    rates = inv.instantaneous_rates()
+    dt = 1.0
+    after = inv.decay(dt).numbers()
+    for name in inv.names:
+        fd = (after[name] - inv.numbers()[name]) / dt
+        assert rates[name] == pytest.approx(fd, rel=1e-3, abs=1e6)
+    qinv = Inventory({"I-131": n0 * ureg.atom}, units="atoms")
+    qrates = qinv.instantaneous_rates()
+    assert isinstance(qrates["I-131"], pint.Quantity)
+    assert qrates["I-131"].to("atom/second").magnitude == pytest.approx(
+        rates["I-131"], rel=1e-12
+    )
+
+
+def test_instantaneous_rates_sum_near_zero_for_closed_chain():
+    # Sr-90 -> Y-90 -> Zr-90 (stable): total atoms conserved => sum(dN/dt) ~ 0
+    # only if no untracked branches; ICRP Sr-90 chain is closed to Zr-90.
+    inv = Inventory({"Sr-90": 1.0e6}, units="atoms")
+    rates = inv.instantaneous_rates()
+    assert sum(rates.values()) == pytest.approx(0.0, abs=1e-6)
+
+
 def test_decay_time_series_shapes_and_plain_floats():
     inv = Inventory({"Co-60": 1.0e18}, units="atoms")
     times, series = inv.decay_time_series(1.0e6, npoints=11)

@@ -61,3 +61,40 @@ def activity_bq(n_atoms: float, lambda_: float) -> float:
     if not math.isfinite(n) or n < 0:
         raise PyDecayError(f"N must be finite and >= 0, got {n_atoms}")
     return _validate_lambda(lambda_) * n
+
+
+def dn_dt(n_atoms: float, lambda_: float) -> float:
+    """Instantaneous atom change rate dN/dt = -lambda * N (atoms/s)."""
+    n = float(n_atoms)
+    if not math.isfinite(n) or n < 0:
+        raise PyDecayError(f"N must be finite and >= 0, got {n_atoms}")
+    return -_validate_lambda(lambda_) * n
+
+
+def da_dt(a0_bq: float, lambda_: float, t_s: float) -> float:
+    """Instantaneous activity change rate dA/dt = -lambda * A(t) (Bq/s)."""
+    a0 = float(a0_bq)
+    if not math.isfinite(a0) or a0 < 0:
+        raise PyDecayError(f"A0 must be finite and >= 0, got {a0_bq}")
+    lam = _validate_lambda(lambda_)
+    a_t = a0 * remaining_fraction(lam, t_s)
+    return -lam * a_t
+
+
+def ode_residual(n_atoms: float, lambda_: float, dn_dt_value: float | None = None) -> float:
+    """Return dN/dt + lambda * N for the ODE dN/dt = -lambda * N.
+
+    With ``dn_dt_value=None`` the analytic rate is used and the result is 0.
+    Pass a (e.g. numerical) derivative to test whether it satisfies the ODE.
+    """
+    n = float(n_atoms)
+    if not math.isfinite(n) or n < 0:
+        raise PyDecayError(f"N must be finite and >= 0, got {n_atoms}")
+    lam = _validate_lambda(lambda_)
+    if dn_dt_value is None:
+        rate = -lam * n
+    else:
+        rate = float(dn_dt_value)
+        if not math.isfinite(rate):
+            raise PyDecayError(f"dN/dt must be finite, got {dn_dt_value}")
+    return rate + lam * n

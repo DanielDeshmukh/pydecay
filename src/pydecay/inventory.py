@@ -392,6 +392,22 @@ class Inventory:
                 out[name] = float(n)
         return out
 
+    def instantaneous_rates(self) -> dict[str, Any]:
+        """dN_i/dt for every species at the current state (atoms/s), mirroring kind.
+
+        Uses the joint generator: rates = G @ N. Stable end-caps report pure
+        ingrowth (>= 0) or 0; parents report net loss (<= 0) plus any balance.
+        """
+        g = self._graph.generator()
+        rates = g @ np.asarray(self._n0, dtype=np.float64)
+        out: dict[str, Any] = {}
+        for name, val in zip(self._graph.names, rates, strict=True):
+            if self._was_quantity:
+                out[name] = mirror_quantity(float(val), 1 * ureg.atom, "atom/second")
+            else:
+                out[name] = float(val)
+        return out
+
     def activities(self) -> dict[str, Any]:
         """Activity (Bq) of every species, mirroring constructor kind."""
         out: dict[str, Any] = {}

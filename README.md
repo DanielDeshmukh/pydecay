@@ -26,7 +26,8 @@ Author: **Daniel Deshmukh** · [github.com/DanielDeshmukh/pydecay](https://githu
   - [5. Branching topologies](#5-branching-topologies)
   - [6. Radiation spectra](#6-radiation-spectra)
   - [7. Unit conversions](#7-unit-conversions)
-  - [8. Error handling](#8-error-handling)
+  - [8. Instantaneous rates & ODE residual](#8-instantaneous-rates--ode-residual)
+  - [9. Error handling](#9-error-handling)
 - [Verification](#verification)
 - [Documentation](#documentation)
 - [Development](#development)
@@ -44,7 +45,7 @@ Requires **Python ≥ 3.10**. Runtime dependencies: `numpy`, `scipy`, `pint`.
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.4.0"
+print(pydecay.__version__)  # "0.5.0"
 ```
 
 ---
@@ -91,6 +92,7 @@ print(inv.decay("8.02 days").activities())
 | Data | 1252 radionuclides + 246 stable endpoints = **1498 records** | ICRP Publication 107 |
 | Spectra | `emissions` / `beta_spectrum` (RAD/BET), lazy-loaded | ICRP-107 RAD/BET |
 | Units | seconds / atoms / Bq internally; Bq↔Ci and atoms↔grams at the boundary | NIST SP 811; BIPM SI (N_A exact) |
+| Rates / ODE | `dn_dt`, `da_dt`, `decay_ode_residual`; `Inventory.instantaneous_rates` via G @ N | dN/dt = −λN |
 
 ### 1. Single-isotope decay
 
@@ -261,7 +263,26 @@ Internally pydecay works in **seconds, atoms, and becquerels**; these helpers
 are the boundary converters. Pint Quantities are accepted wherever a time or
 amount is expected — output kind mirrors input.
 
-### 8. Error handling
+### 8. Instantaneous rates & ODE residual
+
+```python
+from pydecay import dn_dt, da_dt, decay_ode_residual, Inventory
+
+# dN/dt = -λN  (atoms/s)
+dn_dt(1e6, "8.02 days")
+
+# dA/dt = -λ A(t)  (Bq/s)
+da_dt(1000.0, "8.02 days", 0.0)
+
+# Residual dN/dt + λN — 0 on an exact analytic trajectory
+decay_ode_residual(1e6, 8.02 * 86400)  # 0.0
+
+# Multi-nuclide: joint generator rates for the full closure
+inv = Inventory({"Mo-99": 1e6}, units="Bq")
+inv.instantaneous_rates()  # dict species -> atoms/s
+```
+
+### 9. Error handling
 
 All package-raised errors inherit from `PyDecayError`:
 

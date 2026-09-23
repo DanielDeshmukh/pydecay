@@ -15,7 +15,7 @@ You need Python 3.10 or newer. That's it — NumPy, SciPy, and Pint come with it
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.4.0"
+print(pydecay.__version__)  # "0.5.0"
 ```
 
 ---
@@ -355,8 +355,9 @@ n = decayed_atoms(N0=N0, half_life="8.02 days", time="24 hours")
 
 ### Promoted helpers (top-level)
 
-Unit converters and decay kernels are also importable from the package root
-(same names as their home submodules `pydecay.units` / `pydecay.decay`):
+Unit converters, decay kernels, and rate helpers are also importable from
+the package root (same names as their home submodules `pydecay.units` /
+`pydecay.decay` / `pydecay.api`):
 
 ```python
 from pydecay import (
@@ -367,6 +368,9 @@ from pydecay import (
     grams_to_atoms,
     decay_constant,
     mean_lifetime_s,
+    dn_dt,
+    da_dt,
+    decay_ode_residual,
 )
 
 to_seconds("8.02 days")            # seconds as float
@@ -376,6 +380,43 @@ atoms_to_grams(1e18, 130.9061)     # grams
 grams_to_atoms(1.0, 238.0508)      # atom count
 decay_constant(8.02 * 86400)       # λ = ln2 / T½  (1/s)
 mean_lifetime_s(decay_constant(7.0))  # τ = 1 / λ  (s)
+dn_dt(1e6, "8.02 days")            # dN/dt (atoms/s)
+da_dt(1000.0, "8.02 days", 0.0)    # dA/dt (Bq/s)
+decay_ode_residual(1e6, 8.02 * 86400)  # 0.0 on analytic trajectory
+```
+
+### Instantaneous rates and ODE residual (0.5.0)
+
+How fast is it changing *right now*?
+
+```python
+from pydecay import dn_dt, da_dt, decay_ode_residual
+
+# dN/dt = -λN  (atoms/s; negative = losing atoms)
+dn_dt(1e6, "8.02 days")
+
+# dA/dt = -λ A(t)  (Bq/s at t=0 for 1000 Bq)
+da_dt(1000.0, "8.02 days", 0.0)
+
+# ODE residual dN/dt + λN — exactly 0 on an analytic trajectory
+assert decay_ode_residual(1e6, 8.02 * 86400) == 0.0
+
+# Check a numerical derivative against the law
+h = 1e-4
+T = 8.02 * 86400
+n_t = 1e6 * 2 ** (-100.0 / T)
+n_next = 1e6 * 2 ** (-(100.0 + h) / T)
+print(decay_ode_residual(n_t, T, dn_dt_value=(n_next - n_t) / h))  # ~0
+```
+
+For multi-nuclide systems, `Inventory.instantaneous_rates()` returns
+dN_i/dt for every species from the joint generator (`G @ N`):
+
+```python
+from pydecay import Inventory
+
+inv = Inventory({"Mo-99": 1e6}, units="Bq")
+print(inv.instantaneous_rates())  # dict species -> atoms/s (or Quantity)
 ```
 
 ---
@@ -399,11 +440,14 @@ from pydecay import (
     grams_to_atoms,
     decay_constant,
     mean_lifetime_s,
+    dn_dt,
+    da_dt,
+    decay_ode_residual,
     __version__,
 )
 
 # --- version ---
-print(__version__)  # "0.4.0"
+print(__version__)  # "0.5.0"
 
 # --- one isotope ---
 i131 = Nuclide.load("I-131")

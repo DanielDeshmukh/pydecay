@@ -5,6 +5,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-23
+
+### Added
+- Instantaneous rate helpers: `dn_dt(N, half_life)` (atoms/s) and
+  `da_dt(A0, half_life, time)` (Bq/s) as top-level exports.
+- `decay_ode_residual(N, half_life, *, dn_dt_value=None)` — ODE residual
+  `dN/dt + λN`; analytic default is exactly 0, optional numerical
+  derivative for verification.
+- Pure kernels in `pydecay.decay`: `dn_dt`, `da_dt`, `ode_residual`.
+- `Inventory.instantaneous_rates()` — joint `dN_i/dt = G @ N` for the
+  full progeny closure, mirroring constructor kind.
+
 ## [0.4.0] - 2026-09-23
 
 ### Added

@@ -112,6 +112,7 @@ Quantity) is mirrored by accessors and preserved across `decay`.
 | `.decay_time_series` | `decay_time_series(t_end, *, npoints=501, time_scale="linear", t_start=0.0) -> tuple[list[float], dict[str, list[float]]]` | Atom-number curves over the closure; plain floats (does not mirror Quantity) |
 | `.numbers` | `numbers() -> dict[str, float \| Quantity]` | Atom counts now; mirrors kind |
 | `.activities` | `activities() -> dict[str, float \| Quantity]` | Activity (Bq) now; mirrors kind |
+| `.instantaneous_rates` | `instantaneous_rates() -> dict[str, float \| Quantity]` | dN_i/dt (atoms/s) at current state via G @ N; mirrors kind |
 | `.masses` | `masses() -> dict[str, float \| Quantity]` | Mass (g) now; mirrors kind |
 | `.total_activity` | `total_activity() -> float` | Sum of activities over the closure (always Bq float) |
 | `.half_lives` | `half_lives() -> dict[str, float]` | Half-life (s) per species; `inf` for stable |
@@ -169,7 +170,7 @@ chain.at(t="1 days", n0={"parent": 1e6, "stable": 0.0})
 
 ## Module-level helpers
 
-Promoted unit and decay kernels (same names as their home submodules).
+Promoted unit, decay, and rate kernels (same names as their home submodules).
 
 | Function | Signature | Description |
 |---|---|---|
@@ -180,14 +181,24 @@ Promoted unit and decay kernels (same names as their home submodules).
 | `grams_to_atoms` | `grams_to_atoms(m_g, atomic_mass_u) -> float` | Grams → atom count |
 | `decay_constant` | `decay_constant(half_life_s) -> float` | λ = ln2 / T½ (1/s); rejects ≤ 0 / non-finite |
 | `mean_lifetime_s` | `mean_lifetime_s(lambda_) -> float` | τ = 1 / λ (s); rejects λ ≤ 0 / non-finite |
+| `dn_dt` | `dn_dt(N, half_life) -> float \| Quantity` | Instantaneous dN/dt = −λN (atoms/s); mirrors `N` |
+| `da_dt` | `da_dt(A0, half_life, time) -> float \| Quantity` | Instantaneous dA/dt = −λA(t) (Bq/s); mirrors `A0` |
+| `decay_ode_residual` | `decay_ode_residual(N, half_life, *, dn_dt_value=None) -> float` | Residual dN/dt + λN; analytic default 0, or check a numerical derivative |
 
 ```python
 from pydecay import bq_to_ci, ci_to_bq, decay_constant, mean_lifetime_s, to_seconds
+from pydecay import da_dt, decay_ode_residual, dn_dt
 
 to_seconds("8.02 days")
 bq_to_ci(3.7e10)                 # 1.0
 decay_constant(8.02 * 86400)     # 1/s
 mean_lifetime_s(decay_constant(8.02 * 86400))
+
+# Rates and ODE residual
+dn_dt(1e6, "8.02 days")          # atoms/s (negative)
+da_dt(1000.0, "8.02 days", 0.0)  # Bq/s at t=0
+decay_ode_residual(1e6, 8.02 * 86400)  # 0.0
+decay_ode_residual(1e6, 10.0, dn_dt_value=-0.0693 * 1e6)  # ~0 if consistent
 ```
 
 ## Exception hierarchy
@@ -232,5 +243,5 @@ E, A = beta_spectrum("Ac-226")
 
 ```python
 import pydecay
-pydecay.__version__  # "0.4.0"
+pydecay.__version__  # "0.5.0"
 ```

@@ -16,9 +16,12 @@ from pydecay import (
     atoms_to_grams,
     bq_to_ci,
     ci_to_bq,
+    da_dt,
     decay_constant,
+    decay_ode_residual,
     decayed_activity,
     decayed_atoms,
+    dn_dt,
     grams_to_atoms,
     mean_lifetime_s,
     remaining_fraction,
@@ -87,7 +90,7 @@ def test_public_exports():
 
     for name in pydecay.__all__:
         assert hasattr(pydecay, name)
-    assert __version__ == "0.4.0"
+    assert __version__ == "0.5.0"
     assert issubclass(NuclideNotFoundError, PyDecayError)
     assert issubclass(ChainDefinitionError, PyDecayError)
     assert "Inventory" in pydecay.__all__
@@ -105,6 +108,9 @@ def test_helper_exports_present_and_callable():
         "grams_to_atoms",
         "decay_constant",
         "mean_lifetime_s",
+        "dn_dt",
+        "da_dt",
+        "decay_ode_residual",
     ):
         assert name in pydecay.__all__
         assert hasattr(pydecay, name)
@@ -219,3 +225,82 @@ def test_remaining_fraction_generic_pattern():
     for n in (1, 2, 5, 10):
         frac = remaining_fraction(half_life="1 days", time=n * 86400.0)
         assert frac == pytest.approx(0.5**n, rel=1e-12)
+
+
+def test_dn_dt_top_level_sign_and_magnitude():
+    half_life = 10.0
+    lam = math.log(2) / half_life
+    assert dn_dt(1.0e6, half_life) == pytest.approx(-lam * 1.0e6, rel=1e-12)
+    assert dn_dt(0.0, half_life) == 0.0
+
+
+def test_dn_dt_top_level_mirrors_n_and_matches_finite_difference():
+    half_life = 8.02 * 86400.0
+    n0, dt = 1.0e6, 1.0e-3
+    n_t = decayed_atoms(N0=n0, half_life=half_life, time=100.0)
+    n_next = decayed_atoms(N0=n0, half_life=half_life, time=100.0 + dt)
+    fd = (n_next - n_t) / dt
+    assert dn_dt(n_t, half_life) == pytest.approx(fd, rel=1e-5)
+    out = dn_dt(n0 * ureg.atom, half_life=half_life)
+    assert isinstance(out, pint.Quantity)
+    assert out.to("atom/second").magnitude == pytest.approx(-math.log(2) / half_life * n0)
+
+
+def test_dn_dt_top_level_rejects_bad_inputs():
+    with pytest.raises(InvalidHalfLifeError):
+        dn_dt(1.0, 0.0)
+    with pytest.raises(UnitError):
+        dn_dt(-1.0, 10.0)
+    with pytest.raises(UnitError):
+        dn_dt("many", 10.0)
+
+
+def test_da_dt_top_level_at_zero_and_half_life():
+    a0, half_life = 1000.0, "8.02 days"
+    lam = math.log(2) / (8.02 * 86400.0)
+    assert da_dt(a0, half_life, 0.0) == pytest.approx(-lam * a0, rel=1e-12)
+    assert da_dt(a0, half_life, half_life) == pytest.approx(-lam * 500.0, rel=1e-12)
+
+
+def test_da_dt_top_level_mirrors_a0_and_finite_difference():
+    a0, half_life = 1000.0, 8.02 * 86400.0
+    t, dt = 50.0, 1e-4
+    a_t = decayed_activity(A0=a0, half_life=half_life, time=t)
+    a_next = decayed_activity(A0=a0, half_life=half_life, time=t + dt)
+    fd = (a_next - a_t) / dt
+    assert da_dt(a0, half_life, t) == pytest.approx(fd, rel=1e-4)
+    out = da_dt(a0 * ureg.becquerel, half_life=half_life, time=t)
+    assert isinstance(out, pint.Quantity)
+    assert out.to("becquerel/second").magnitude == pytest.approx(da_dt(a0, half_life, t))
+
+
+def test_da_dt_top_level_rejects_bad_inputs():
+    with pytest.raises(InvalidTimeError):
+        da_dt(1000.0, "8 days", -1.0)
+    with pytest.raises(UnitError):
+        da_dt(-1.0, "8 days", 0.0)
+    with pytest.raises(UnitError):
+        da_dt("hot", "8 days", 0.0)
+
+
+def test_decay_ode_residual_analytic_is_zero():
+    assert decay_ode_residual(1.0e6, 8.02 * 86400.0) == 0.0
+    assert decay_ode_residual(0.0, 10.0) == 0.0
+
+
+def test_decay_ode_residual_accepts_consistent_numerical_derivative():
+    half_life, n = 10.0, 1.0e6
+    lam = math.log(2) / half_life
+    assert decay_ode_residual(n, half_life, dn_dt_value=-lam * n) == pytest.approx(0.0, abs=1e-9)
+    assert decay_ode_residual(n, half_life, dn_dt_value=-lam * n * 1.01) == pytest.approx(
+        -0.01 * lam * n, rel=1e-9
+    )
+
+
+def test_decay_ode_residual_rejects_bad_inputs():
+    with pytest.raises(UnitError):
+        decay_ode_residual(-1.0, 10.0)
+    with pytest.raises(InvalidHalfLifeError):
+        decay_ode_residual(1.0, 0.0)
+    with pytest.raises(PyDecayError):
+        decay_ode_residual(1.0, 10.0, dn_dt_value=math.nan)

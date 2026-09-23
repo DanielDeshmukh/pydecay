@@ -67,3 +67,52 @@ def test_rejects_negative_atoms():
     lam = decay.decay_constant(100.0)
     with pytest.raises(PyDecayError):
         decay.remaining_atoms(-1.0, lam, 1.0)
+
+
+def test_dn_dt_is_minus_lambda_n():
+    lam = decay.decay_constant(10.0)
+    assert decay.dn_dt(1.0e6, lam) == pytest.approx(-lam * 1.0e6)
+    assert decay.dn_dt(0.0, lam) == 0.0
+
+
+def test_dn_dt_rejects_bad_n_and_lambda():
+    lam = decay.decay_constant(10.0)
+    with pytest.raises(PyDecayError):
+        decay.dn_dt(-1.0, lam)
+    with pytest.raises(InvalidHalfLifeError):
+        decay.dn_dt(1.0, 0.0)
+
+
+def test_da_dt_negative_and_matches_derivative_of_activity():
+    lam = decay.decay_constant(10.0)
+    a0, t, dt = 1000.0, 3.0, 1e-5
+    a_t = a0 * math.exp(-lam * t)
+    a_next = a0 * math.exp(-lam * (t + dt))
+    assert decay.da_dt(a0, lam, t) == pytest.approx(-lam * a_t)
+    assert decay.da_dt(a0, lam, t) == pytest.approx((a_next - a_t) / dt, rel=1e-4)
+
+
+def test_da_dt_rejects_bad_inputs():
+    lam = decay.decay_constant(10.0)
+    with pytest.raises(PyDecayError):
+        decay.da_dt(-1.0, lam, 0.0)
+    with pytest.raises(InvalidTimeError):
+        decay.da_dt(1.0, lam, -1.0)
+
+
+def test_ode_residual_zero_on_analytic_rate_and_nonzero_on_mismatch():
+    lam = decay.decay_constant(10.0)
+    n = 1.0e6
+    assert decay.ode_residual(n, lam) == 0.0
+    assert decay.ode_residual(n, lam, -lam * n) == pytest.approx(0.0, abs=1e-9)
+    assert decay.ode_residual(n, lam, 0.0) == pytest.approx(lam * n)
+
+
+def test_ode_residual_rejects_bad_inputs():
+    lam = decay.decay_constant(10.0)
+    with pytest.raises(PyDecayError):
+        decay.ode_residual(-1.0, lam)
+    with pytest.raises(InvalidHalfLifeError):
+        decay.ode_residual(1.0, 0.0)
+    with pytest.raises(PyDecayError):
+        decay.ode_residual(1.0, lam, math.nan)
