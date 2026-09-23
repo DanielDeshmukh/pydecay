@@ -140,5 +140,5 @@ except NuclideNotFoundError:
 
 ```python
 import pydecay
-pydecay.__version__  # "0.1.0"
+pydecay.__version__  # "0.1.1"
 ```

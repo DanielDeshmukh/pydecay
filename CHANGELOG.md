@@ -5,11 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-23
+
 ### Fixed
 - Package metadata author fields: hatchling now emits
   `Author: Daniel Deshmukh` and `Author-email: deshmukhdaniel2005@gmail.com`
   (name and email are separate `authors` entries). Guarded by
-  `tests/test_packaging.py`. Applies to the next PyPI release.
+  `tests/test_packaging.py`.
+
+## [0.1.0] - 2026-09-22
 
 ### Added
 - Single-isotope analytical decay (`decayed_atoms`, `decayed_activity`,

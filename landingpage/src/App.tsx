@@ -943,7 +943,7 @@ function DocsPage({ path }: { path: string }) {
         <span className="section-kicker"><span>PYDECAY /</span> FIELD MANUAL</span>
         <h1>Documentation<span>.</span></h1>
         <p>Everything you need to model radioactive decay with confidence, from your first half-life to a branching chain.</p>
-        <div className="docs-masthead-meta"><span>PYTHON 3.10+</span><span>MIT LICENSE</span><span>VERSION 0.1.0</span></div>
+        <div className="docs-masthead-meta"><span>PYTHON 3.10+</span><span>MIT LICENSE</span><span>VERSION 0.1.1</span></div>
       </div>
 
       <div className="docs-layout section-shell">
