@@ -11,7 +11,7 @@ from pydecay import DecayChain, Nuclide, decayed_activity, remaining_fraction
 
 GOLDEN_PATH = Path(__file__).parent / "golden_values.json"
 REQUIRED_ENTRY_KEYS = {"id", "kind", "rel_tol", "source", "note"}
-PROVENANCE_OK_PREFIXES = ("IAEA", "NNDC", "analytic", "radioactivedecay")
+PROVENANCE_OK_PREFIXES = ("ICRP", "IAEA", "NNDC", "analytic", "radioactivedecay")
 REQUIRED_IDS = frozenset(
     {
         "tc99m_halflife_iaea",
