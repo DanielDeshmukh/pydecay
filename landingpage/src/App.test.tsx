@@ -187,7 +187,7 @@ describe("App docs page", () => {
     stubLocation("/docs");
     render(<App />);
     expect(screen.getByRole("heading", { name: /Documentation/i })).toBeTruthy();
-    expect(screen.getByText(/VERSION 0\.4\.0/)).toBeTruthy();
+    expect(screen.getByText(/VERSION 0\.5\.0/)).toBeTruthy();
     expect(screen.getByText(/pip install pydecay/)).toBeTruthy();
   });
 
@@ -224,11 +224,16 @@ describe("App docs page", () => {
     expect(screen.getAllByText(/atoms_to_grams/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/decay_constant/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/mean_lifetime_s/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/dn_dt/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/da_dt/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/decay_ode_residual/).length).toBeGreaterThan(0);
   });
 
-  it("shows changelog with current 0.4.0 entry", () => {
+  it("shows changelog with current 0.5.0 entry", () => {
     stubLocation("/docs/changelog");
     render(<App />);
+    expect(screen.getAllByText(/0\.5\.0/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/instantaneous rates/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/0\.4\.0/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/top-level re-exports/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/0\.3\.0/).length).toBeGreaterThan(0);

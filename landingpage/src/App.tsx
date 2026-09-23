@@ -886,7 +886,7 @@ tau = mean_lifetime_s(lam)     # ${formatConverter(tau)} s`;
         </div>
       </Reveal>
       <p className="workbench-footnote">
-        Preview calculated in your browser — same formulas as pydecay 0.4.0 top-level exports (
+        Preview calculated in your browser — same formulas as pydecay 0.5.0 top-level exports (
         <code>to_seconds</code>, <code>bq_to_ci</code>, <code>ci_to_bq</code>,{" "}
         <code>atoms_to_grams</code>, <code>grams_to_atoms</code>, <code>decay_constant</code>,{" "}
         <code>mean_lifetime_s</code>).
@@ -1629,7 +1629,7 @@ function DocsPage({ path }: { path: string }) {
         <div className="docs-masthead-meta">
           <span>PYTHON 3.10+</span>
           <span>MIT + ICRP-07 DATA</span>
-          <span>VERSION 0.4.0</span>
+          <span>VERSION 0.5.0</span>
         </div>
       </div>
 
@@ -1714,6 +1714,28 @@ function DocsPage({ path }: { path: string }) {
                 1 half-life → 50% left. 2 → 25%. 3 → 12.5%. 5 → 3.125%. Multiply any starting number
                 by <code>remaining_fraction</code>.
               </p>
+            </div>
+
+            <h3 className="docs-subhead">
+              Instantaneous rates &amp; ODE residual <span>(0.5.0)</span>
+            </h3>
+            <p>
+              <strong>Use case:</strong> “How fast is it changing right now?” — <code>dn_dt</code> /{" "}
+              <code>da_dt</code> return dN/dt and dA/dt;
+              <code>decay_ode_residual</code> checks a numerical derivative against the law.
+            </p>
+            <CodeBlock
+              code={`from pydecay import dn_dt, da_dt, decay_ode_residual, Inventory\n\n# dN/dt = -lambda*N  (atoms/s; negative = losing atoms)\nprint(dn_dt(1e6, "8.02 days"))            # atoms/s\n\n# dA/dt = -lambda*A(t)  (Bq/s at t=0)\nprint(da_dt(1000.0, "8.02 days", 0.0))    # Bq/s\n\n# Residual dN/dt + lambda*N — exactly 0 on an analytic trajectory\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\n# Check a numerical derivative against the law\nprint(decay_ode_residual(1e6, 8.02 * 86400, dn_dt_value=-1e6 / (8.02 * 86400)))  # ~0\n\n# Multi-nuclide: joint generator rates for the full closure\ninv = Inventory({"Mo-99": 1e6}, units="Bq")\nprint(inv.instantaneous_rates())  # dict species -> atoms/s`}
+            />
+            <div className="docs-inline-note">
+              <span>ATOMS</span>
+              <strong>dn_dt(N, half_life)</strong>
+              <span>ACTIVITY</span>
+              <strong>da_dt(A0, half_life, time)</strong>
+              <span>ODE</span>
+              <strong>decay_ode_residual(...)</strong>
+              <span>CLOSURE</span>
+              <strong>Inventory.instantaneous_rates()</strong>
             </div>
 
             <h3 className="docs-subhead">
@@ -1845,6 +1867,8 @@ function DocsPage({ path }: { path: string }) {
               <strong>atoms_to_grams / grams_to_atoms</strong>
               <span>DECAY</span>
               <strong>decay_constant / mean_lifetime_s</strong>
+              <span>RATES</span>
+              <strong>dn_dt / da_dt / decay_ode_residual</strong>
             </div>
 
             <h3 className="docs-subhead">Units — plain numbers or human strings</h3>
@@ -1861,14 +1885,16 @@ function DocsPage({ path }: { path: string }) {
 
             <h3 className="docs-subhead">Cheat sheet (copy-paste everything)</h3>
             <CodeBlock
-              code={`from pydecay import (\n    Nuclide, DecayChain,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    __version__,\n)\n\nprint(__version__)  # "0.4.0"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
+              code={`from pydecay import (\n    Nuclide, DecayChain, Inventory,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    dn_dt, da_dt, decay_ode_residual,\n    __version__,\n)\n\nprint(__version__)  # "0.5.0"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nprint(dn_dt(1e6, "8.02 days"))      # atoms/s\nprint(da_dt(1000.0, "8.02 days", 0.0))  # Bq/s\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
               label="FULL CHEAT SHEET"
             />
             <p className="docs-small-result">
               <span>ONE-LINER</span> Three decay functions answer “how much is left?” ·{" "}
               <code>Nuclide.load</code> looks up 1498 ICRP-107 records · <code>DecayChain</code>{" "}
               follows parents/daughters · <code>emissions</code>/<code>beta_spectrum</code> give
-              spectra · seven unit helpers convert Bq/Ci, atoms/g, times, and λ/τ.
+              spectra · seven unit helpers convert Bq/Ci, atoms/g, times, and λ/τ ·{" "}
+              <code>dn_dt</code>/<code>da_dt</code>/<code>decay_ode_residual</code> report how fast
+              things change right now.
             </p>
           </DocsSection>
 
@@ -2091,6 +2117,31 @@ function DocsPage({ path }: { path: string }) {
             </p>
             <div className="changelog-list">
               <article className="changelog-entry is-current">
+                <header>
+                  <span>0.5.0</span>
+                  <time dateTime="2026-09-23">2026-09-23</time>
+                </header>
+                <h4>Added</h4>
+                <ul>
+                  <li>
+                    Instantaneous rates: <code>dn_dt</code>, <code>da_dt</code> (atoms/s, Bq/s)
+                    top-level helpers.
+                  </li>
+                  <li>
+                    <code>decay_ode_residual</code> — residual <code>dN/dt + λN</code>; analytic
+                    default is exactly 0.
+                  </li>
+                  <li>
+                    Pure kernels <code>pydecay.decay.dn_dt</code> / <code>da_dt</code> /{" "}
+                    <code>ode_residual</code>.
+                  </li>
+                  <li>
+                    <code>Inventory.instantaneous_rates()</code> — joint <code>G @ N</code> for the
+                    full progeny closure.
+                  </li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
                 <header>
                   <span>0.4.0</span>
                   <time dateTime="2026-09-23">2026-09-23</time>
