@@ -12,3 +12,6 @@ build/
 .coverage
 htmlcov/
 site/
+data/raw_icrp/*
+!data/raw_icrp/.gitkeep
+!data/raw_icrp/README.md
