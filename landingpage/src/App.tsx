@@ -542,7 +542,7 @@ function Capabilities() {
         number="02"
         label="THE ENGINE"
         title="More than a decay curve."
-        description="IAEA-sourced nuclides and unit-aware inputs meet an analytical solver that knows when to take the numerically stable route."
+        description="ICRP-107-sourced nuclides and unit-aware inputs meet an analytical solver that knows when to take the numerically stable route."
       />
       <Reveal className="capability-layout">
         <div className="feature-list" role="tablist" aria-label="Explore pydecay capabilities">
@@ -759,7 +759,7 @@ function PeriodicTable({ onTryNuclide }: { onTryNuclide: (id: string) => void })
         </div>
         <ElementPanel element={selected} onTryNuclide={onTryNuclide} />
       </div>
-      <p className="periodic-disclaimer">The table is an element reference. pydecay bundles 47 sourced nuclide records, not every isotope of every element.</p>
+      <p className="periodic-disclaimer">The table is an element reference. pydecay bundles 1252 ICRP-107 radionuclides (1498 records including stable endpoints), not every isotope of every element.</p>
     </section>
   );
 }
@@ -908,10 +908,12 @@ const branchingCode = `from pydecay import DecayChain\n\nb = DecayChain.branchin
 
 const docsNavigation = [
   { id: "installation", label: "Installation" },
+  { id: "user-guide", label: "User guide" },
   { id: "quickstart", label: "Quickstart" },
   { id: "single-isotope", label: "Single isotope" },
   { id: "decay-chains", label: "Decay chains" },
   { id: "branching", label: "Branching" },
+  { id: "spectra", label: "Spectra" },
   { id: "solver", label: "Solver strategy" },
   { id: "data-units", label: "Data & units" },
   { id: "verification", label: "Verification" },
@@ -943,12 +945,12 @@ function DocsPage({ path }: { path: string }) {
         <span className="section-kicker"><span>PYDECAY /</span> FIELD MANUAL</span>
         <h1>Documentation<span>.</span></h1>
         <p>Everything you need to model radioactive decay with confidence, from your first half-life to a branching chain.</p>
-        <div className="docs-masthead-meta"><span>PYTHON 3.10+</span><span>MIT LICENSE</span><span>VERSION 0.1.1</span></div>
+        <div className="docs-masthead-meta"><span>PYTHON 3.10+</span><span>MIT + ICRP-07 DATA</span><span>VERSION 0.2.0</span></div>
       </div>
 
       <div className="docs-layout section-shell">
         <aside className="docs-sidebar" aria-label="Documentation sections">
-          <span className="docs-sidebar-label">CONTENTS / 08</span>
+          <span className="docs-sidebar-label">CONTENTS / 10</span>
           <nav>
             {docsNavigation.map((item, index) => (
               <a
@@ -971,13 +973,64 @@ function DocsPage({ path }: { path: string }) {
             <div className="docs-inline-note"><span>REQUIRES</span><strong>Python &gt;= 3.10</strong><span>DEPENDS ON</span><strong>numpy / scipy / pint</strong></div>
           </DocsSection>
 
-          <DocsSection id="quickstart" number="02" title="Quickstart">
+          <DocsSection id="user-guide" number="02" title="User guide — every function, simply">
+            <p>This is the zero-to-working tour. Every public function, what it is for, and a runnable snippet. Copy any block into a file and run it.</p>
+
+            <h3 className="docs-subhead">How much is left? (3 functions)</h3>
+            <p><strong>1. <code>decayed_activity(A0, half_life, time)</code></strong> — starting activity → activity now.</p>
+            <CodeBlock code={`from pydecay import decayed_activity\n# 1000 Bq of I-131 after one half-life -> 500 Bq\nprint(decayed_activity(A0=1000.0, half_life="8.02 days", time="8.02 days"))  # 500.0`} />
+            <p><strong>2. <code>decayed_atoms(N0, half_life, time)</code></strong> — starting atom count → atoms left.</p>
+            <CodeBlock code={`from pydecay import decayed_atoms\nprint(decayed_atoms(N0=1_000_000, half_life="8.02 days", time="24 hours"))`} />
+            <p><strong>3. <code>remaining_fraction(half_life, time)</code></strong> — pure percent left (0–1), no starting amount needed.</p>
+            <CodeBlock code={`from pydecay import remaining_fraction\n# After 5 half-lives only 3.125% remains\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\nprint(remaining_fraction(half_life="8.02 days", time=5 * 8.02 * 86400))  # 0.03125`} />
+            <div className="docs-rule"><span>MENTAL MATH</span><p>1 half-life → 50% left. 2 → 25%. 3 → 12.5%. 5 → 3.125%. Multiply any starting number by <code>remaining_fraction</code>.</p></div>
+
+            <h3 className="docs-subhead">Look up a real nuclide: <code>Nuclide</code></h3>
+            <p><strong>Use case:</strong> “What is the half-life of I-131, and where did the number come from?” 1498 ICRP-107 records ship with the package.</p>
+            <CodeBlock code={`from pydecay import Nuclide\n\ni131 = Nuclide.load("I-131")\nprint(i131.half_life)      # pint Quantity (seconds)\nprint(i131.half_life_s)    # plain seconds: 692988.48\nprint(i131.lambda_)        # decay constant 1/s\nprint(i131.atomic_mass_u)  # mass in u\nprint(i131.source)         # "ICRP-107"\n\nall_nuclides = Nuclide.load_all()  # dict of all 1498 records`} />
+            <div className="docs-inline-note"><span>LOOKUP</span><strong>Nuclide.load / Nuclide.load_all</strong><span>ACTIVITY FROM ATOMS</span><strong>.activity(N, t=...)</strong></div>
+
+            <h3 className="docs-subhead">Follow a decay chain: <code>DecayChain</code></h3>
+            <p><strong>Use case:</strong> parent → daughter → stable. How much of each at time t?</p>
+            <CodeBlock code={`from pydecay import DecayChain\n\n# From real nuclide names (half-lives auto-loaded)\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))      # atom counts\nprint(chain.activity(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0})) # Bq of each\n\n# Or from raw decay constants (1/s), parent first; 0 = stable\nchain2 = DecayChain([0.693, 0.0], names=["parent", "stable"])\nprint(chain2.at(t="1 days", n0={"parent": 1e6, "stable": 0.0}))`} />
+            <p>Methods: <code>.at(t, n0)</code> → atoms · <code>.activity(t, n0)</code> → Bq · <code>.names</code> · <code>.lambdas</code>. Omit <code>n0</code> and the parent starts at 1.0.</p>
+
+            <h3 className="docs-subhead">One parent, multiple outcomes: branching</h3>
+            <CodeBlock code={`from pydecay import DecayChain\n\nb = DecayChain.branching(\n    parent="P",\n    branches={"D1": 0.6, "D2": 0.3},   # fractions; sum <= 1\n    lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5},\n)\nprint(b.at(t="1 day"))       # atoms of P, D1, D2\nprint(b.activity(t="1 day")) # Bq of each`} />
+            <div className="docs-rule"><span>BRANCH RULE</span><p>Fractions must sum to at most 1.0. If they sum to 0.9, the remaining 10% leaves as an untracked sink.</p></div>
+
+            <h3 className="docs-subhead">Radiation spectra: <code>emissions</code> &amp; <code>beta_spectrum</code></h3>
+            <p><strong>Use case:</strong> “What radiation lines does this nuclide emit?” / “Plot the beta energy spectrum.”</p>
+            <CodeBlock code={`from pydecay import emissions, beta_spectrum\n\nrows = emissions("Ac-223")            # list of dicts: E_MeV, prob, code...\nE, A = beta_spectrum("Sr-90")         # two parallel lists in MeV\nprint(len(rows), len(E))              # e.g. 480, 102`} />
+            <p>Lazy-loaded on first call (does not slow <code>import pydecay</code>). Stable nuclides raise <code>DataFormatError</code>; unknown names raise <code>NuclideNotFoundError</code>.</p>
+
+            <h3 className="docs-subhead">Errors — what you catch</h3>
+            <div className="docs-check-list">
+              <div><span>01</span><strong>NuclideNotFoundError</strong><code>Nuclide.load("Xx-999")</code></div>
+              <div><span>02</span><strong>InvalidTimeError</strong><code>time &lt; 0</code></div>
+              <div><span>03</span><strong>InvalidHalfLifeError</strong><code>half_life &lt;= 0</code></div>
+              <div><span>04</span><strong>ChainDefinitionError</strong><code>bad chain / fractions &gt; 1</code></div>
+              <div><span>05</span><strong>DataFormatError</strong><code>broken record / spectra on stable</code></div>
+              <div><span>06</span><strong>UnitError</strong><code>bad unit / string on N0 or A0</code></div>
+            </div>
+            <CodeBlock code={`from pydecay import Nuclide, NuclideNotFoundError, PyDecayError\n\ntry:\n    Nuclide.load("Xx-999")\nexcept NuclideNotFoundError:\n    print("Check the spelling, e.g. I-131, Co-60")\n\n# Or catch every pydecay error:\ntry:\n    ...\nexcept PyDecayError as e:\n    print("pydecay said:", e)`} label="ERROR HANDLING" />
+
+            <h3 className="docs-subhead">Units — plain numbers or human strings</h3>
+            <CodeBlock code={`from pydecay import decayed_activity\nimport pint\n\ndecayed_activity(A0=1000.0, half_life="8.02 days", time="24 hours")\ndecayed_activity(A0=1000.0, half_life=692988.48, time=86400.0)  # same, seconds\n\nureg = pint.UnitRegistry()\nn = decayed_activity(A0=1000 * ureg.becquerel, half_life="8.02 days", time="8.02 days")\n# n is still a Quantity in Bq`} />
+            <div className="docs-rule"><span>NOTE</span><p>Do not pass strings for <code>N0</code> or <code>A0</code> — use numbers or Pint Quantities, or you get <code>UnitError</code>.</p></div>
+
+            <h3 className="docs-subhead">Cheat sheet (copy-paste everything)</h3>
+            <CodeBlock code={`from pydecay import (\n    Nuclide, DecayChain,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum, __version__,\n)\n\nprint(__version__)  # "0.2.0"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`} label="FULL CHEAT SHEET" />
+            <p className="docs-small-result"><span>ONE-LINER</span> Three decay functions answer “how much is left?” · <code>Nuclide.load</code> looks up 1498 ICRP-107 records · <code>DecayChain</code> follows parents/daughters · <code>emissions</code>/<code>beta_spectrum</code> give spectra.</p>
+          </DocsSection>
+
+          <DocsSection id="quickstart" number="03" title="Quickstart">
             <p>Load a bundled nuclide, compute its activity after one half-life, and find the dimensionless fraction remaining after five.</p>
             <CodeBlock code={quickstartCode} />
             <p className="docs-small-result"><span>EXPECTED RESULT</span> 500 Bq after one half-life; 0.03125 of the initial amount after five.</p>
           </DocsSection>
 
-          <DocsSection id="single-isotope" number="03" title="Single-isotope decay">
+          <DocsSection id="single-isotope" number="04" title="Single-isotope decay">
             <p>For an isolated isotope, the number of atoms falls exponentially. Activity is the decay constant multiplied by the number of undecayed atoms.</p>
             <div className="docs-equation">
               <span>THE MODEL</span>
@@ -988,19 +1041,25 @@ function DocsPage({ path }: { path: string }) {
             <CodeBlock code={`from pydecay import Nuclide, decayed_activity, remaining_fraction\n\ni131 = Nuclide.load("I-131")\nactivity = decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life)\nfraction = remaining_fraction(half_life=i131.half_life, time=5 * i131.half_life)`} />
           </DocsSection>
 
-          <DocsSection id="decay-chains" number="04" title="Linear decay chains">
+          <DocsSection id="decay-chains" number="05" title="Linear decay chains">
             <p>Use <code>DecayChain</code> to evolve populations through a sequence of parent and daughter nuclides. A zero decay constant represents a stable endpoint.</p>
             <CodeBlock code={chainCode} />
             <p>When decay constants are well separated, the solver uses the Bateman closed form. Time inputs can be plain values or Pint-style strings such as <code>"1 days"</code>.</p>
           </DocsSection>
 
-          <DocsSection id="branching" number="05" title="Branching topologies">
+          <DocsSection id="branching" number="06" title="Branching topologies">
             <p>Split a parent into multiple daughters with explicitly defined branch fractions and decay constants.</p>
             <CodeBlock code={branchingCode} />
             <div className="docs-rule"><span>BRANCH RULE</span><p>Fractions must add up to no more than 1. In this example, the remaining 10% leaves the tracked system as an untracked sink.</p></div>
           </DocsSection>
 
-          <DocsSection id="solver" number="06" title="Solver strategy">
+          <DocsSection id="spectra" number="07" title="Radiation spectra">
+            <p><code>emissions()</code> returns RAD emission rows (energy, probability, code). <code>beta_spectrum()</code> returns parallel energy/intensity lists for beta emitters. Both lazy-load on first call from ICRP-107 RAD/BET artifacts.</p>
+            <CodeBlock code={`from pydecay import emissions, beta_spectrum\n\nrows = emissions("Co-60")       # list of dicts\nE, A = beta_spectrum("Sr-90")  # (energies MeV, intensities)\nprint(len(rows), len(E))`} />
+            <div className="docs-inline-note"><span>RAD</span><strong>emissions(name)</strong><span>BET</span><strong>beta_spectrum(name)</strong></div>
+          </DocsSection>
+
+          <DocsSection id="solver" number="08" title="Solver strategy">
             <p>pydecay switches methods where the mathematics demands it. The goal is a finite, stable answer rather than forcing a fragile closed form.</p>
             <div className="docs-strategy">
               <div><span>01 / BATEMAN</span><strong>Well-separated linear chains</strong><p>Use the analytical closed form when decay constants are safely distinct.</p></div>
@@ -1009,16 +1068,16 @@ function DocsPage({ path }: { path: string }) {
             <p>Regression tests keep the near-degenerate 0.6931 / 0.6932 case finite and compare the two solvers to 1e-10 where both apply.</p>
           </DocsSection>
 
-          <DocsSection id="data-units" number="07" title="Nuclide data & units">
-            <p>The package bundles 47 nuclides with per-record source and fetch date from the IAEA Live Chart of Nuclides. This site&apos;s 118-element table is a separate reference, not a promise that every isotope is bundled.</p>
+          <DocsSection id="data-units" number="09" title="Nuclide data & units">
+            <p>The package bundles 1252 ICRP-107 radionuclides (1498 records including stable endpoints) with per-record source and fetch date. Lazy-loaded RAD/BET emission yields and beta spectra are available via <code>emissions()</code> / <code>beta_spectrum()</code>. This site&apos;s 118-element table is a separate reference, not a promise that every isotope is bundled.</p>
             <div className="docs-strategy units-strategy">
               <div><span>INTERNAL REPRESENTATION</span><strong>Seconds / atoms / Bq</strong><p>Calculations stay in consistent base quantities.</p></div>
               <div><span>AT THE BOUNDARY</span><strong>Bq &harr; Ci / atoms &harr; grams</strong><p>Unit conversions are available at the edges of the calculation.</p></div>
             </div>
-            <p>See the <a href="https://www.iaea.org/resources/databases/livechart-of-nuclides" target="_blank" rel="noreferrer noopener">IAEA Live Chart <ArrowUpRight size={14} /></a> for the underlying nuclide reference.</p>
+            <p>See the <a href="https://www.icrp.org/publications.asp" target="_blank" rel="noreferrer noopener">ICRP publications <ArrowUpRight size={14} /></a> and the bundled ICRP-07 data license for the underlying nuclide reference.</p>
           </DocsSection>
 
-          <DocsSection id="verification" number="08" title="Verification & next steps">
+          <DocsSection id="verification" number="10" title="Verification & next steps">
             <p>Worked examples and solver comparisons are part of the project tests. Differential checks against radioactivedecay (ICRP-107) report drift and fail past 1e-3 relative difference.</p>
             <div className="docs-check-list">
               <div><span>01</span><strong>Known I-131 values</strong><code>tests/test_known_values.py</code></div>
@@ -1054,7 +1113,7 @@ function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>BUILT BY DANIEL DESHMUKH / MIT LICENSE</span>
+        <span>BUILT BY DANIEL DESHMUKH / MIT LICENSE + ICRP-07 DATA (NON-PROFIT)</span>
         <span>ELEMENT REFERENCE: <a href="https://periodictableofelements.org" target="_blank" rel="noreferrer noopener">PERIODICTABLEOFELEMENTS.ORG</a> + <a href="https://github.com/andrejewski/periodic-table" target="_blank" rel="noreferrer noopener">PERIODIC-TABLE</a></span>
         <span>&copy; PYDECAY</span>
       </div>

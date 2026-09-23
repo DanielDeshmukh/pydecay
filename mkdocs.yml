@@ -17,6 +17,7 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
 nav:
   - Home: index.md
+  - User guide: user-guide.md
   - Quickstart: quickstart.md
   - Mathematics: math.md
   - Architecture: architecture.md
