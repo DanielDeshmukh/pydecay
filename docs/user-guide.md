@@ -15,7 +15,7 @@ You need Python 3.10 or newer. That's it — NumPy, SciPy, and Pint come with it
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.2.0"
+print(pydecay.__version__)  # "0.3.0"
 ```
 
 ---
@@ -258,7 +258,7 @@ If they sum to 0.9, the remaining 10% is an **untracked sink** (leaves the syste
 
 ---
 
-## 6. Radiation spectra (v0.2.0)
+## 6. Radiation spectra
 
 ### `emissions(name)`
 
@@ -371,7 +371,7 @@ from pydecay import (
 )
 
 # --- version ---
-print(__version__)  # "0.2.0"
+print(__version__)  # "0.3.0"
 
 # --- one isotope ---
 i131 = Nuclide.load("I-131")

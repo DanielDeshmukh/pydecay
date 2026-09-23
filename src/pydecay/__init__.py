@@ -20,7 +20,7 @@ from pydecay.inventory import Inventory
 from pydecay.nuclide import Nuclide
 from pydecay.spectra import beta_spectrum, emissions
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "ChainDefinitionError",
