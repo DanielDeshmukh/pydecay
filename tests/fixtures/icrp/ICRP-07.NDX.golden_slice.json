@@ -1,135 +1,162 @@
 {
-  "source": "ICRP-07.NDX",
-  "source_sha256": "ac84a9cf1da890031c2ab81a33cba858ff637d701fca3bc33fb07c5a1d6cf2b9",
   "records": [
     {
-      "name": "U-238",
-      "half_life_raw": "4.468E+9",
-      "half_life_units": "y",
-      "half_life_s": 1.409993568e+17,
-      "modes_raw": "A SF",
-      "progeny": [
-        "Th-234"
-      ],
+      "atomic_mass_u": 238.050788,
       "branching": [
         1.0
       ],
-      "sf_branch": 5.45e-07,
-      "atomic_mass_u": 238.050788,
+      "half_life_raw": "4.468E+9",
+      "half_life_s": 1.409993568e+17,
+      "half_life_units": "y",
       "icrp_extra": {
         "E_alpha": 4.2584,
         "E_electron": 0.00917,
         "E_photon": 0.00143,
-        "num_phot_lt_10k": 7,
-        "num_phot_gt_10k": 136,
+        "num_alpha": 3,
         "num_betas": 1,
         "num_mono_e": 26,
-        "num_alpha": 3
-      }
+        "num_phot_gt_10k": 136,
+        "num_phot_lt_10k": 7
+      },
+      "modes_raw": "A SF",
+      "name": "U-238",
+      "progeny": [
+        "Th-234"
+      ],
+      "sf_branch": 5.45e-07
     },
     {
-      "name": "Tc-99m",
-      "half_life_raw": "6.015",
-      "half_life_units": "h",
-      "half_life_s": 21654.0,
-      "modes_raw": "ITB-",
-      "progeny": [
-        "Tc-99",
-        "Ru-99"
-      ],
+      "atomic_mass_u": 99.9076577,
       "branching": [
         0.99996,
         3.7e-05
       ],
-      "sf_branch": null,
-      "atomic_mass_u": 99.9076577,
+      "half_life_raw": "6.015",
+      "half_life_s": 21654.0,
+      "half_life_units": "h",
       "icrp_extra": {
         "E_alpha": 0.0,
         "E_electron": 0.01618,
         "E_photon": 0.12659,
-        "num_phot_lt_10k": 61,
-        "num_phot_gt_10k": 25,
+        "num_alpha": 0,
         "num_betas": 3,
         "num_mono_e": 54,
-        "num_alpha": 0
-      }
+        "num_phot_gt_10k": 25,
+        "num_phot_lt_10k": 61
+      },
+      "modes_raw": "ITB-",
+      "name": "Tc-99m",
+      "progeny": [
+        "Tc-99",
+        "Ru-99"
+      ],
+      "sf_branch": null
     },
     {
-      "name": "I-131",
-      "half_life_raw": "8.02070",
-      "half_life_units": "d",
-      "half_life_s": 692988.48,
-      "modes_raw": "B-",
-      "progeny": [
-        "Xe-131m",
-        "Xe-131"
-      ],
+      "atomic_mass_u": 131.907996,
       "branching": [
         0.011759,
         0.98824
       ],
-      "sf_branch": null,
-      "atomic_mass_u": 131.907996,
+      "half_life_raw": "8.02070",
+      "half_life_s": 692988.48,
+      "half_life_units": "d",
       "icrp_extra": {
         "E_alpha": 0.0,
         "E_electron": 0.19184,
         "E_photon": 0.38275,
-        "num_phot_lt_10k": 37,
-        "num_phot_gt_10k": 31,
+        "num_alpha": 0,
         "num_betas": 6,
         "num_mono_e": 121,
-        "num_alpha": 0
-      }
+        "num_phot_gt_10k": 31,
+        "num_phot_lt_10k": 37
+      },
+      "modes_raw": "B-",
+      "name": "I-131",
+      "progeny": [
+        "Xe-131m",
+        "Xe-131"
+      ],
+      "sf_branch": null
     },
     {
-      "name": "Sr-90",
-      "half_life_raw": "28.79",
-      "half_life_units": "y",
-      "half_life_s": 908543304.0,
-      "modes_raw": "B-",
-      "progeny": [
-        "Y-90"
-      ],
+      "atomic_mass_u": 90.9102029,
       "branching": [
         1.0
       ],
-      "sf_branch": null,
-      "atomic_mass_u": 90.9102029,
+      "half_life_raw": "28.79",
+      "half_life_s": 908543304.0,
+      "half_life_units": "y",
       "icrp_extra": {
         "E_alpha": 0.0,
         "E_electron": 0.19572,
         "E_photon": 0.0,
-        "num_phot_lt_10k": 0,
-        "num_phot_gt_10k": 0,
+        "num_alpha": 0,
         "num_betas": 1,
         "num_mono_e": 0,
-        "num_alpha": 0
-      }
+        "num_phot_gt_10k": 0,
+        "num_phot_lt_10k": 0
+      },
+      "modes_raw": "B-",
+      "name": "Sr-90",
+      "progeny": [
+        "Y-90"
+      ],
+      "sf_branch": null
     },
     {
-      "name": "Co-60",
-      "half_life_raw": "5.2713",
-      "half_life_units": "y",
-      "half_life_s": 166349576.88,
-      "modes_raw": "B-",
-      "progeny": [
-        "Ni-60"
-      ],
+      "atomic_mass_u": 60.9324757,
       "branching": [
         1.0
       ],
-      "sf_branch": null,
-      "atomic_mass_u": 60.9324757,
+      "half_life_raw": "5.2713",
+      "half_life_s": 166349576.88,
+      "half_life_units": "y",
       "icrp_extra": {
         "E_alpha": 0.0,
         "E_electron": 0.09686,
         "E_photon": 2.50384,
-        "num_phot_lt_10k": 25,
-        "num_phot_gt_10k": 6,
+        "num_alpha": 0,
         "num_betas": 2,
         "num_mono_e": 31,
-        "num_alpha": 0
-      }
+        "num_phot_gt_10k": 6,
+        "num_phot_lt_10k": 25
+      },
+      "modes_raw": "B-",
+      "name": "Co-60",
+      "progeny": [
+        "Ni-60"
+      ],
+      "sf_branch": null
+    },
+    {
+      "atomic_mass_u": 239.052163,
+      "branching": [
+        0.9994,
+        0.0006
+      ],
+      "half_life_raw": "2.411E+4",
+      "half_life_s": 760853736000.0,
+      "half_life_units": "y",
+      "icrp_extra": {
+        "E_alpha": 5.2357,
+        "E_electron": 0.00745,
+        "E_photon": 0.00107,
+        "num_alpha": 52,
+        "num_betas": 0,
+        "num_mono_e": 1031,
+        "num_phot_gt_10k": 274,
+        "num_phot_lt_10k": 7
+      },
+      "modes_raw": "A",
+      "name": "Pu-239",
+      "progeny": [
+        "U-235m",
+        "U-235"
+      ],
+      "sf_branch": null
     }
-  ]
+  ],
+  "source": "ICRP-07.NDX",
+  "source_sha256": "ac84a9cf1da890031c2ab81a33cba858ff637d701fca3bc33fb07c5a1d6cf2b9"
 }

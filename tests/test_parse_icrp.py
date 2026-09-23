@@ -112,3 +112,24 @@ def test_u238_sf_split_from_golden_slice():
     assert u238["sf_branch"] == pytest.approx(5.45e-7)
     assert u238["atomic_mass_u"] == pytest.approx(238.050788, rel=1e-9)
     assert u238["half_life_s"] == pytest.approx(4.468e9 * 31557600.0, rel=1e-12)
+
+
+def test_golden_slice_has_six_rows_and_pinned_sha():
+    # Non-skip once Task 2 regenerates the slice with Pu-239 appended.
+    if not GOLDEN.exists():
+        pytest.skip("golden slice added with full NDX build in Task 2")
+    data = json.loads(GOLDEN.read_text(encoding="utf-8"))
+    assert data["source_sha256"] == (
+        "ac84a9cf1da890031c2ab81a33cba858ff637d701fca3bc33fb07c5a1d6cf2b9"
+    )
+    names = [r["name"] for r in data["records"]]
+    assert names == ["U-238", "Tc-99m", "I-131", "Sr-90", "Co-60", "Pu-239"]
+    pu = data["records"][-1]
+    assert pu["half_life_raw"] == "2.411E+4"
+    assert pu["half_life_units"] == "y"
+    assert pu["modes_raw"] == "A"
+    assert pu["progeny"] == ["U-235m", "U-235"]
+    assert pu["branching"] == [pytest.approx(0.9994), pytest.approx(0.0006)]
+    assert pu["sf_branch"] is None
+    assert pu["atomic_mass_u"] == pytest.approx(239.052163, rel=1e-9)
+    assert pu["half_life_s"] == pytest.approx(2.411e4 * 31557600.0, rel=1e-12)

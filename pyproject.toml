@@ -65,7 +65,7 @@ addopts = "-q"
 
 [tool.coverage.run]
 source = ["pydecay"]
-omit = ["*/data/_fetch_iaea.py"]
+omit = ["*/data/_fetch_iaea.py", "*/data/_fetch_icrp.py"]
 branch = false
 
 [tool.coverage.report]
