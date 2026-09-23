@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass
 from importlib import resources
@@ -58,6 +59,10 @@ class Nuclide:
     source_url: str
     fetched: str
     half_life_uncertainty_s: float | None = None
+    progeny: tuple[str, ...] = ()
+    branching: tuple[float, ...] = ()
+    is_stable: bool = False
+    sf_branch: float | None = None
 
     @classmethod
     def from_record(cls, name: str, record: dict[str, Any]) -> Nuclide:
@@ -97,6 +102,15 @@ class Nuclide:
                 unc = float(unc)
             except (TypeError, ValueError) as exc:
                 raise DataFormatError(f"record for {norm} bad uncertainty") from exc
+        progeny, branching, is_stable = cls._parse_progeny_branching(norm, record)
+        sf_branch = record.get("sf_branch")
+        if sf_branch is not None:
+            try:
+                sf_branch = float(sf_branch)
+            except (TypeError, ValueError) as exc:
+                raise DataFormatError(f"record for {norm} bad sf_branch") from exc
+            if not math.isfinite(sf_branch) or sf_branch < 0:
+                raise DataFormatError(f"record for {norm} sf_branch must be finite and >= 0")
         return cls(
             name=norm,
             half_life_s=half_life_s,
@@ -106,13 +120,51 @@ class Nuclide:
             source_url=source_url,
             fetched=fetched,
             half_life_uncertainty_s=unc,
+            progeny=progeny,
+            branching=branching,
+            is_stable=is_stable,
+            sf_branch=sf_branch,
         )
+
+    @staticmethod
+    def _parse_progeny_branching(
+        norm: str, record: dict[str, Any]
+    ) -> tuple[tuple[str, ...], tuple[float, ...], bool]:
+        """Parse optional progeny/branching/is_stable (defaults empty/false)."""
+        raw_progeny = record.get("progeny", [])
+        if not isinstance(raw_progeny, list) or not all(
+            isinstance(p, str) and p for p in raw_progeny
+        ):
+            raise DataFormatError(f"record for {norm} progeny must be a list of names")
+        raw_branching = record.get("branching", [])
+        if not isinstance(raw_branching, list):
+            raise DataFormatError(f"record for {norm} branching must be a list")
+        branches: list[float] = []
+        for item in raw_branching:
+            try:
+                frac = float(item)
+            except (TypeError, ValueError) as exc:
+                raise DataFormatError(f"record for {norm} has non-numeric branch") from exc
+            if not math.isfinite(frac) or frac < 0:
+                raise DataFormatError(
+                    f"record for {norm} branching fractions must be finite and >= 0"
+                )
+            branches.append(frac)
+        if len(raw_progeny) != len(branches):
+            raise DataFormatError(
+                f"record for {norm} progeny/branching length mismatch: "
+                f"{len(raw_progeny)} != {len(branches)}"
+            )
+        is_stable = record.get("is_stable", False)
+        if not isinstance(is_stable, bool):
+            raise DataFormatError(f"record for {norm} is_stable must be a bool")
+        if is_stable and branches:
+            raise DataFormatError(f"record for {norm} is stable but has branching fractions")
+        return tuple(raw_progeny), tuple(branches), is_stable
 
     @classmethod
     def _bundled_records(cls) -> dict[str, Any]:
-        text = resources.files("pydecay.data").joinpath("icrp107.json").read_text(
-            encoding="utf-8"
-        )
+        text = resources.files("pydecay.data").joinpath("icrp107.json").read_text(encoding="utf-8")
         data = json.loads(text)
         if not isinstance(data, dict):
             raise DataFormatError("icrp107.json must be a JSON object")
@@ -134,7 +186,9 @@ class Nuclide:
 
     @property
     def lambda_(self) -> float:
-        """Decay constant in 1/s."""
+        """Decay constant in 1/s; ``0.0`` for stable nuclides (infinite half-life)."""
+        if self.is_stable or not math.isfinite(self.half_life_s):
+            return 0.0
         return decay.decay_constant(self.half_life_s)
 
     @property
@@ -146,5 +200,8 @@ class Nuclide:
         """Return A(t) = lambda * N * exp(-lambda * t) in Bq, mirroring ``N``'s kind."""
         n_atoms = to_float(N, "atom")
         t_s = to_seconds(t)
-        a = self.lambda_ * n_atoms * decay.remaining_fraction(self.lambda_, t_s)
+        lam = self.lambda_
+        if lam == 0.0:
+            return mirror_quantity(0.0, N, "becquerel")
+        a = lam * n_atoms * decay.remaining_fraction(lam, t_s)
         return mirror_quantity(a, N, "becquerel")
