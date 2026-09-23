@@ -12,6 +12,23 @@ from pydecay import DecayChain, Nuclide, decayed_activity, remaining_fraction
 GOLDEN_PATH = Path(__file__).parent / "golden_values.json"
 REQUIRED_ENTRY_KEYS = {"id", "kind", "rel_tol", "source", "note"}
 PROVENANCE_OK_PREFIXES = ("IAEA", "NNDC", "analytic", "radioactivedecay")
+REQUIRED_IDS = frozenset(
+    {
+        "tc99m_halflife_iaea",
+        "i131_halflife_iaea",
+        "co60_halflife_iaea",
+        "cs137_halflife_iaea",
+        "c14_halflife_iaea",
+        "u238_halflife_iaea",
+        "co60_activity_10y",
+        "tc99m_activity_6h",
+        "c14_fraction_5730y",
+        "u238_fraction_1gy",
+        "one_half_life_identity",
+        "sr90_y90_atoms_30y",
+        "branch_p_d1_d2_10s",
+    }
+)
 
 
 def _load_golden() -> dict:
@@ -22,7 +39,15 @@ def test_golden_file_exists_and_has_schema():
     data = _load_golden()
     assert data["schema_version"] == 1
     assert data["verified_on"]
-    assert isinstance(data["entries"], list) and data["entries"]
+    entries = data["entries"]
+    assert isinstance(entries, list)
+    ids = [e["id"] for e in entries]
+    assert len(entries) == 13, f"expected 13 golden entries, got {len(entries)}"
+    assert len(ids) == len(set(ids)), "duplicate golden entry ids"
+    assert set(ids) == REQUIRED_IDS, (
+        f"golden id set drifted: missing={sorted(REQUIRED_IDS - set(ids))} "
+        f"extra={sorted(set(ids) - REQUIRED_IDS)}"
+    )
 
 
 def test_every_entry_has_required_keys_and_provenance():
