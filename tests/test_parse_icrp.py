@@ -87,6 +87,21 @@ def test_branch_sum_out_of_tolerance_raises():
         parse_ndx_line(line)
 
 
+def test_malformed_energy_and_count_fields_raise_data_format_error():
+    # Any field parse failure on a data line must surface as DataFormatError
+    # (the contract parse_ndx_text implies), never a bare ValueError.
+    head_lines = FIXTURE.read_text(encoding="iso-8859-1").splitlines()
+    base = head_lines[1]
+    bad_energy = base[:152] + " badfmt" + base[159:]  # E_alpha width 7
+    assert len(bad_energy) == 226
+    with pytest.raises(DataFormatError):
+        parse_ndx_line(bad_energy)
+    bad_count = base[:175] + " abx" + base[179:]  # count c0 width 4
+    assert len(bad_count) == 226
+    with pytest.raises(DataFormatError):
+        parse_ndx_line(bad_count)
+
+
 def test_u238_sf_split_from_golden_slice():
     if not GOLDEN.exists():
         pytest.skip("golden slice added with full NDX build in Task 2")

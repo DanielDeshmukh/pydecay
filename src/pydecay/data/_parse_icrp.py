@@ -83,6 +83,20 @@ def parse_ndx_line(line: str) -> dict[str, Any]:
     return _parse_ndx_line_cursor(line, name, hl_raw, unit, modes_raw, half_life_s)
 
 
+def _ndx_float_field(raw: str, field: str, name: str) -> float:
+    try:
+        return float(raw or "0")
+    except ValueError as exc:
+        raise DataFormatError(f"bad {field} {raw!r} for {name}") from exc
+
+
+def _ndx_int_field(raw: str, field: str, name: str) -> int:
+    try:
+        return int(raw or "0")
+    except ValueError as exc:
+        raise DataFormatError(f"bad {field} {raw!r} for {name}") from exc
+
+
 def _parse_ndx_line_cursor(
     line: str,
     name: str,
@@ -123,17 +137,15 @@ def _parse_ndx_line_cursor(
             continue
         progeny.append(p)
         branching.append(b)
-    if off != 152:
-        raise DataFormatError(f"progeny block misaligned: off={off} name={name}")
-    e_alpha = float(line[152:159].strip() or "0")
-    e_electron = float(line[159:167].strip() or "0")
-    e_photon = float(line[167:175].strip() or "0")
+    e_alpha = _ndx_float_field(line[152:159].strip(), "E_alpha", name)
+    e_electron = _ndx_float_field(line[159:167].strip(), "E_electron", name)
+    e_photon = _ndx_float_field(line[167:175].strip(), "E_photon", name)
     # counts: 3i4, i5, i4
-    c0 = int(line[175:179].strip() or "0")
-    c1 = int(line[179:183].strip() or "0")
-    c2 = int(line[183:187].strip() or "0")
-    c3 = int(line[187:192].strip() or "0")
-    c4 = int(line[192:196].strip() or "0")
+    c0 = _ndx_int_field(line[175:179].strip(), "num_phot_lt_10k", name)
+    c1 = _ndx_int_field(line[179:183].strip(), "num_phot_gt_10k", name)
+    c2 = _ndx_int_field(line[183:187].strip(), "num_betas", name)
+    c3 = _ndx_int_field(line[187:192].strip(), "num_mono_e", name)
+    c4 = _ndx_int_field(line[192:196].strip(), "num_alpha", name)
     mass_s = line[196:207].strip()
     try:
         atomic_mass_u = float(mass_s)
