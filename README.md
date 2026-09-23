@@ -6,7 +6,8 @@
 
 Radioactive decay mathematics for Python: analytical single-isotope decay,
 Bateman decay chains with a matrix-exponential stability guard, branching
-topologies, IAEA-sourced nuclide data, and activity unit conversions.
+topologies, ICRP-107 nuclide data (1252+ isotopes), spectra access, and
+activity unit conversions.
 
 Author: **Daniel Deshmukh** · [github.com/DanielDeshmukh/pydecay](https://github.com/DanielDeshmukh/pydecay)
 
@@ -50,17 +51,20 @@ b = DecayChain.branching(
 | Linear chains | Bateman (1910) closed form when well-separated | Bateman 1910 |
 | Stability guard | `scipy.linalg.expm` on the generator matrix for degenerate lambda, branching, or nonzero daughter ICs | spec fix option 2; Cetnar 2006 (deferred optimization) |
 | Branching | star topologies with fractions <= 1 (remainder = untracked sink) | general linear ODE system |
-| Data | 47 nuclides with per-record source + fetch date | IAEA Live Chart of Nuclides |
+| Data | 1252+ ICRP-107 radionuclides + stable endpoints (default catalog) | ICRP Publication 107 |
+| Spectra | `emissions` / `beta_spectrum` (RAD/BET), lazy-loaded | ICRP-107 RAD/BET files |
 | Units | seconds / atoms / Bq internally; Bq<->Ci and atoms<->grams at the boundary | NIST SP 811; BIPM SI (N_A exact) |
 
 ## Verification
 
 - Worked examples (1000 Bq I-131 -> 500 Bq / 31.25 Bq) asserted against the
-  bundled IAEA half-lives in `tests/test_known_values.py`.
+  bundled ICRP-107 half-lives in `tests/test_known_values.py`.
 - Bateman vs `expm` agreement to 1e-10; degenerate-lambda regression
   (0.6931 / 0.6932) must stay finite (`tests/test_solver.py`).
 - Differential cross-check against `radioactivedecay` (ICRP-107):
   report drift, fail past 1e-3 relative (`tests/test_crosscheck.py`).
+- IAEA 47-nuclide fixture retained as a differential oracle
+  (`tests/test_iaea_differential.py`, `REL_TOL_DATA = 1.5e-2`).
 
 ## Documentation
 
@@ -75,4 +79,5 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md). Quality gates: `pytest`,
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE). Bundled ICRP-107 data is under
+`LICENSE.ICRP-07` (educational / research / not-for-profit terms).

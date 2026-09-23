@@ -136,9 +136,25 @@ except NuclideNotFoundError:
     ...
 ```
 
+## `spectra`
+
+Optional radiation spectra access (ICRP-107 RAD/BET). Lazy-loaded on first
+call; not read on `import pydecay`.
+
+| Function | Signature | Description |
+|---|---|---|
+| `emissions` | `emissions(name: str) -> list[dict]` | RAD emission rows (`E_MeV`, `prob`, `code_AN`, …); raises `NuclideNotFoundError` if unknown or no rows |
+| `beta_spectrum` | `beta_spectrum(name: str) -> tuple[list[float], list[float]]` | `(E_MeV, A)` beta spectrum; raises `NuclideNotFoundError` / `DataFormatError` if missing |
+
+```python
+from pydecay.spectra import emissions, beta_spectrum
+rows = emissions("Ac-223")
+E, A = beta_spectrum("Ac-226")
+```
+
 ## Version
 
 ```python
 import pydecay
-pydecay.__version__  # "0.1.1"
+pydecay.__version__  # "0.2.0"
 ```

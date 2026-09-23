@@ -14,10 +14,12 @@ boilerplate and documentation).
 ## Data rules
 
 - Never hand-type half-life values. Regenerate
-  `src/pydecay/data/nuclides.json` with
-  `python -m pydecay.data._fetch_iaea` (network required).
+  `src/pydecay/data/icrp107.json` with
+  `python -m pydecay.data._fetch_icrp` (network or local NDX required).
 - Every record must carry `source`, `source_url`, and `fetched`.
-- If bundled values disagree with a secondary source, IAEA wins; document any
+- **ICRP-107 wins** for runtime values; **IAEA is the differential oracle
+  only** (`tests/fixtures/iaea_nuclides_47.json`).
+- If bundled values disagree with a secondary source, document any
   accepted evaluation drift in `docs/data-sources.md` with both values.
 
 ## Math rules

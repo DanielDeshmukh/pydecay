@@ -19,7 +19,9 @@ graph TD
     CH --> U
     NU --> U
     NU --> D
-    NU --> DATA["data/nuclides.json"]
+    NU --> DATA["data/icrp107.json"]
+    INIT --> SP[spectra.py]
+    SP --> DLOAD["data/ (lazy RAD/BET gzip)"]
     S --> G
     S --> SCIPY["scipy.linalg.expm"]
     D --> EX
@@ -29,13 +31,14 @@ graph TD
     classDef pure fill:#e8f5e9,stroke:#2e7d32
     classDef edge fill:#e3f2fd,stroke:#1565c0
     class D,G,S pure
-    class API,CH,NU,U,INIT edge
+    class API,CH,NU,U,INIT,SP edge
 ```
 
 Boundary rules: pure-SI modules (`decay.py`, `graph.py`, `_solver.py`) never
 import pint; edge modules (`units.py`, `nuclide.py`, `chain.py`, `api.py`,
-`__init__.py`) may use pint on their public surface and always pass canonical
-floats downward.
+`spectra.py`, `__init__.py`) may use pint on their public surface and always
+pass canonical floats downward. RAD/BET gzip files are opened only on first
+`spectra` / loader call — never on `import pydecay`.
 
 ## Solver dispatch
 
