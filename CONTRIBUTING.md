@@ -28,6 +28,14 @@ boilerplate and documentation).
 - Degenerate-lambda and branching behavior must route through `expm`; never
   ship an unguarded Bateman formula.
 
+## Packaging rules
+
+- Keep `authors` name and email in **separate** `pyproject.toml` entries.
+  A single `{ name, email }` object is folded by hatchling into
+  `Author-email: Name <email>` with an empty `Author` field (`pip show`
+  then hides the name under Author-email). `tests/test_packaging.py`
+  fails if the entries are recombined.
+
 ## Docs
 
 `mkdocs serve` locally; `mkdocs build --strict` must pass. Diagrams are
