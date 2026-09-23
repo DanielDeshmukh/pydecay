@@ -1,18 +1,28 @@
 import { describe, expect, it } from "vitest";
 import {
+  AVOGADRO_PER_MOL,
   activityLiteral,
+  atomsToGrams,
+  bqToCi,
   CHART,
+  CI_IN_BQ,
+  decayConstant,
   decayPath,
   decayedActivity,
   elapsedTime,
   formatActivity,
   formatAxis,
+  formatConverter,
   formatTimeTick,
+  gramsToAtoms,
+  ciToBq,
   markerX,
   markerY,
+  meanLifetimeS,
   parseActivityInput,
   percentRemaining,
   remainingFraction,
+  toSeconds,
 } from "./calculations";
 
 /**
@@ -396,5 +406,123 @@ describe("cross-check: display half-life strings match numeric data", () => {
     const siteSeconds = 8.0228 * 86400;
     const rel = Math.abs(siteSeconds - icrpSeconds) / icrpSeconds;
     expect(rel).toBeLessThan(1e-3);
+  });
+});
+
+describe("unit conversion helpers (mirror pydecay top-level exports)", () => {
+  it("CI_IN_BQ and AVOGADRO match pydecay.units constants", () => {
+    expect(CI_IN_BQ).toBe(3.7e10);
+    expect(AVOGADRO_PER_MOL).toBe(6.02214076e23);
+  });
+
+  describe("bqToCi", () => {
+    it("3.7e10 Bq is exactly 1 Ci", () => {
+      expect(bqToCi(3.7e10)).toBeCloseTo(1, 12);
+    });
+
+    it("zero maps to zero", () => {
+      expect(bqToCi(0)).toBe(0);
+    });
+
+    it("round-trips with ciToBq", () => {
+      expect(bqToCi(ciToBq(2.5))).toBeCloseTo(2.5, 12);
+      expect(bqToCi(3.7e9)).toBeCloseTo(0.1, 12);
+    });
+  });
+
+  describe("ciToBq", () => {
+    it("1 Ci is 3.7e10 Bq", () => {
+      expect(ciToBq(1)).toBe(3.7e10);
+    });
+
+    it("zero maps to zero", () => {
+      expect(ciToBq(0)).toBe(0);
+    });
+
+    it("round-trips with bqToCi for a medical-scale activity", () => {
+      // 1 MBq source ≈ 2.70e-5 Ci
+      const bq = 1e6;
+      expect(ciToBq(bqToCi(bq))).toBeCloseTo(bq, 6);
+    });
+  });
+
+  describe("atomsToGrams / gramsToAtoms", () => {
+    it("one mole of mass M is M grams", () => {
+      const massU = 130.9061;
+      expect(atomsToGrams(AVOGADRO_PER_MOL, massU)).toBeCloseTo(massU, 9);
+    });
+
+    it("I-131: 1e18 atoms converts and round-trips", () => {
+      const massU = 130.9061;
+      const n = 1e18;
+      const g = atomsToGrams(n, massU);
+      expect(g).toBeCloseTo((n * massU) / AVOGADRO_PER_MOL, 12);
+      expect(gramsToAtoms(g, massU)).toBeCloseTo(n, 0);
+    });
+
+    it("zero maps to zero both ways", () => {
+      expect(atomsToGrams(0, 238.0508)).toBe(0);
+      expect(gramsToAtoms(0, 238.0508)).toBe(0);
+    });
+  });
+
+  describe("decayConstant / meanLifetimeS", () => {
+    it("I-131 half-life 692988.48 s → λ = ln2 / T½", () => {
+      const lam = decayConstant(692988.48);
+      expect(lam).toBeCloseTo(Math.LN2 / 692988.48, 15);
+      expect(lam).toBeGreaterThan(0);
+    });
+
+    it("one-second half-life has λ = ln2", () => {
+      expect(decayConstant(1)).toBeCloseTo(Math.LN2, 15);
+    });
+
+    it("τ = 1/λ and τ = T½ / ln2", () => {
+      const tHalf = 692988.48;
+      const lam = decayConstant(tHalf);
+      expect(meanLifetimeS(lam)).toBeCloseTo(tHalf / Math.LN2, 6);
+      expect(meanLifetimeS(Math.LN2)).toBeCloseTo(1 / Math.LN2, 15);
+    });
+  });
+
+  describe("toSeconds", () => {
+    it("passes non-negative finite numbers through", () => {
+      expect(toSeconds(90)).toBe(90);
+      expect(toSeconds(0)).toBe(0);
+      expect(toSeconds(692988.48)).toBe(692988.48);
+    });
+
+    it("parses day/hour/minute/second strings", () => {
+      expect(toSeconds("8.02 days")).toBeCloseTo(8.02 * 86400, 9);
+      expect(toSeconds("24 hours")).toBe(86400);
+      expect(toSeconds("2 hours")).toBe(7200);
+      expect(toSeconds("30 minutes")).toBe(1800);
+      expect(toSeconds("1 second")).toBe(1);
+    });
+
+    it("I-131 8.0228 days ≈ ICRP 692988.48 s within 0.1%", () => {
+      const s = toSeconds("8.0228 days");
+      const rel = Math.abs(s - 692988.48) / 692988.48;
+      expect(rel).toBeLessThan(1e-3);
+    });
+
+    it("rejects negative numbers and garbage strings", () => {
+      expect(() => toSeconds(-1)).toThrow(/>= 0/);
+      expect(() => toSeconds(Number.NaN)).toThrow(/finite/);
+      expect(() => toSeconds("not a time")).toThrow(/cannot parse/);
+      expect(() => toSeconds("8 parsecs")).toThrow(/unknown time unit/);
+    });
+  });
+
+  describe("formatConverter", () => {
+    it("formats mid-range values with locale separators", () => {
+      expect(formatConverter(37000000000)).toBe("37,000,000,000");
+      expect(formatConverter(0)).toBe("0");
+    });
+
+    it("uses scientific notation for very large and very small values", () => {
+      expect(formatConverter(1.234e20)).toMatch(/e\+20/i);
+      expect(formatConverter(1.5e-10)).toMatch(/e-10/i);
+    });
   });
 });

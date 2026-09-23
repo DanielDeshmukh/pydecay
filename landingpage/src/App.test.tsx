@@ -59,6 +59,35 @@ describe("App home page", () => {
     expect(screen.getByRole("combobox", { name: "NUCLIDE" })).toBeTruthy();
   });
 
+  it("renders unit converter playground with live Bq to Ci", () => {
+    stubLocation("/");
+    render(<App />);
+    expect(screen.getByText(/UNITS, IN REAL TIME/i)).toBeTruthy();
+    expect(screen.getByRole("tab", { name: "Bq ↔ Ci" })).toBeTruthy();
+    expect(screen.getAllByLabelText(/^ACTIVITY$/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByDisplayValue("3.7e10")).toBeTruthy();
+    expect(screen.getAllByText(/37,000,000,000/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/bq_to_ci/).length).toBeGreaterThan(0);
+  });
+
+  it("switches unit converter to time mode and shows seconds", () => {
+    stubLocation("/");
+    render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "time → s" }));
+    expect(screen.getByLabelText(/^TIME$/i)).toBeTruthy();
+    expect(screen.getAllByText(/692,928/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/to_seconds/).length).toBeGreaterThan(0);
+  });
+
+  it("switches unit converter to decay mode and shows lambda", () => {
+    stubLocation("/");
+    render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "T½ → λ, τ" }));
+    expect(screen.getByLabelText(/HALF-LIFE/i)).toBeTruthy();
+    expect(screen.getAllByText(/decay_constant/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/mean_lifetime_s/).length).toBeGreaterThan(0);
+  });
+
   it("shows I-131 default playground activity of 500 Bq after one half-life", () => {
     stubLocation("/");
     render(<App />);
@@ -158,14 +187,14 @@ describe("App docs page", () => {
     stubLocation("/docs");
     render(<App />);
     expect(screen.getByRole("heading", { name: /Documentation/i })).toBeTruthy();
-    expect(screen.getByText(/VERSION 0\.2\.0/)).toBeTruthy();
+    expect(screen.getByText(/VERSION 0\.4\.0/)).toBeTruthy();
     expect(screen.getByText(/pip install pydecay/)).toBeTruthy();
   });
 
-  it("lists all 10 doc contents entries", () => {
+  it("lists all 11 doc contents entries", () => {
     stubLocation("/docs");
     render(<App />);
-    expect(screen.getByText(/CONTENTS \/ 10/)).toBeTruthy();
+    expect(screen.getByText(/CONTENTS \/ 11/)).toBeTruthy();
     for (const label of [
       "Installation",
       "User guide",
@@ -177,6 +206,7 @@ describe("App docs page", () => {
       "Solver strategy",
       "Data & units",
       "Verification",
+      "Changelog",
     ]) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0);
     }
@@ -189,6 +219,21 @@ describe("App docs page", () => {
     expect(screen.getAllByText(/decayed_atoms/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/remaining_fraction/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/NuclideNotFoundError/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/to_seconds/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/bq_to_ci/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/atoms_to_grams/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/decay_constant/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/mean_lifetime_s/).length).toBeGreaterThan(0);
+  });
+
+  it("shows changelog with current 0.4.0 entry", () => {
+    stubLocation("/docs/changelog");
+    render(<App />);
+    expect(screen.getAllByText(/0\.4\.0/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/top-level re-exports/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/0\.3\.0/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/0\.2\.0/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Changelog$/).length).toBeGreaterThan(0);
   });
 
   it("shows contributor quality gates", () => {

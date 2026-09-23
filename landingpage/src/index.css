@@ -309,11 +309,16 @@ section[id],
 }
 
 .playground-section,
+.unit-converter-section,
 .capabilities-section,
 .periodic-section,
 .verification-section {
   padding-top: 126px;
   padding-bottom: 126px;
+}
+.unit-converter-section {
+  border-top: 1px solid var(--soft-line);
+  background: #0f1011;
 }
 .section-heading {
   display: grid;
@@ -680,6 +685,196 @@ section[id],
 }
 .workbench-code pre {
   max-height: 178px;
+}
+
+.converter-workbench {
+  min-height: 0;
+}
+.converter-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.converter-mode-tabs button {
+  height: 42px;
+  border: 1px solid #575b5f;
+  background: #252829;
+  color: #c5 rec8cb;
+  color: #c5c8cb;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    border-color 0.18s,
+    color 0.18s,
+    background 0.18s;
+}
+.converter-mode-tabs button:hover {
+  border-color: var(--accent);
+  color: #ecf0f2;
+}
+.converter-mode-tabs button.is-active {
+  border-color: var(--accent);
+  background: #1a2a36;
+  color: var(--accent);
+}
+.converter-primary {
+  white-space: normal !important;
+  word-break: break-word;
+  font-size: clamp(28px, 2.6vw, 42px) !important;
+}
+.converter-error {
+  color: #e08a8a !important;
+}
+.converter-output .output-topline {
+  height: auto;
+  min-height: 58px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  flex-wrap: wrap;
+}
+.converter-explain {
+  flex: 1;
+  padding: 26px 29px 18px;
+  border-bottom: 1px solid #3c4042;
+}
+.converter-explain-label {
+  display: block;
+  margin-bottom: 12px;
+  color: #8a9095;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.12em;
+}
+.converter-explain > p {
+  margin: 0 0 22px;
+  max-width: 70ch;
+  color: #c5c9cd;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.converter-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.converter-facts > div {
+  padding: 14px 15px;
+  border: 1px solid #3c4042;
+  background: #151617;
+}
+.converter-facts span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--accent);
+  font: 500 9px var(--mono);
+  letter-spacing: 0.12em;
+}
+.converter-facts strong {
+  display: block;
+  color: #d5d9dd;
+  font: 12px/1.45 var(--mono);
+  font-weight: 400;
+}
+.converter-equations {
+  display: grid;
+  gap: 10px;
+}
+.converter-equations > div {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  row-gap: 4px;
+  padding: 12px 14px;
+  border-left: 2px solid var(--accent);
+  background: #17222b;
+}
+.converter-equations span {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--accent);
+  font: 500 10px var(--mono);
+  letter-spacing: 0.06em;
+}
+.converter-equations code {
+  color: #d0d5d9;
+  font: 12px var(--mono);
+  word-break: break-word;
+}
+.converter-equations em {
+  color: #9aa1a6;
+  font: 11px var(--mono);
+  font-style: normal;
+}
+.unit-converter-section .workbench-footnote code {
+  color: var(--accent-soft);
+  font-family: var(--mono);
+}
+
+.changelog-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 8px;
+}
+.changelog-entry {
+  padding: 22px 24px;
+  border: 1px solid #3c4042;
+  background: #141516;
+}
+.changelog-entry.is-current {
+  border-color: var(--accent);
+  background: #15222d;
+}
+.changelog-entry header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.changelog-entry header span {
+  color: var(--accent);
+  font: 500 22px var(--mono);
+  letter-spacing: -0.03em;
+}
+.changelog-entry header time {
+  color: #8a9095;
+  font: 11px var(--mono);
+  letter-spacing: 0.06em;
+}
+.changelog-entry h4 {
+  margin: 14px 0 8px;
+  color: #cfd4d8;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.changelog-entry ul {
+  margin: 0;
+  padding-left: 18px;
+  color: #b3b7bb;
+  font-size: 15px;
+  line-height: 1.65;
+}
+.changelog-entry li + li {
+  margin-top: 6px;
+}
+.changelog-entry code {
+  padding: 1px 5px;
+  background: #212f3b;
+  color: var(--accent-soft);
+  font: 0.86em var(--mono);
+}
+
+@media (max-width: 900px) {
+  .converter-facts {
+    grid-template-columns: 1fr;
+  }
+  .converter-mode-tabs {
+    grid-template-columns: 1fr;
+  }
 }
 
 .capabilities-section {

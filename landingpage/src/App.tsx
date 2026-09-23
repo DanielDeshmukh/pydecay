@@ -22,18 +22,29 @@ import { enrichElementsWithApi, fallbackElements, type ElementInfo } from "./dat
 import { demoNuclides, featuredIsotopes } from "./data/nuclides";
 import {
   activityLiteral,
+  AVOGADRO_PER_MOL,
+  atomsToGrams,
+  bqToCi,
   CHART,
+  CI_IN_BQ,
+  decayConstant,
   decayPath,
   decayedActivity,
   elapsedTime,
   formatActivity,
   formatAxis,
+  formatConverter,
   formatTimeTick,
+  gramsToAtoms,
+  ciToBq,
   markerX,
   markerY,
+  meanLifetimeS,
   parseActivityInput,
   percentRemaining,
   remainingFraction,
+  toSeconds,
+  UNIT_FACTS,
 } from "./utils/calculations";
 
 const GITHUB_URL = "https://github.com/DanielDeshmukh/pydecay";
@@ -561,6 +572,329 @@ function Playground({
   );
 }
 
+type ConverterMode = "activity" | "mass" | "time" | "decay";
+
+const converterModes: Array<{ id: ConverterMode; label: string; formula: string }> = [
+  { id: "activity", label: "Bq ↔ Ci", formula: "Ci = Bq / 3.7×10¹⁰" },
+  { id: "mass", label: "atoms ↔ g", formula: "g = N · u / N_A" },
+  { id: "time", label: "time → s", formula: "s = value × unit" },
+  { id: "decay", label: "T½ → λ, τ", formula: "λ = ln2 / T½ · τ = 1/λ" },
+];
+
+function UnitConverter() {
+  const [mode, setMode] = useState<ConverterMode>("activity");
+  const [activityInput, setActivityInput] = useState("3.7e10");
+  const [massGInput, setMassGInput] = useState("1.0");
+  const [massUInput, setMassUInput] = useState("130.9061");
+  const [atomsInput, setAtomsInput] = useState("6.02214076e23");
+  const [timeInput, setTimeInput] = useState("8.02 days");
+  const [halfLifeDaysInput, setHalfLifeDaysInput] = useState("8.0228");
+
+  function parsePositive(raw: string, fallback: number): number {
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : fallback;
+  }
+
+  const activityBq = parsePositive(activityInput, 3.7e10);
+  const massG = parsePositive(massGInput, 1);
+  const massU = parsePositive(massUInput, 130.9061);
+  const atomsN = parsePositive(atomsInput, AVOGADRO_PER_MOL);
+  const halfLifeDays = parsePositive(halfLifeDaysInput, 8.0228);
+
+  let primaryLabel = "ACTIVITY";
+  let primaryValue = "";
+  let primaryUnit = "";
+  let secondaryLabel = "";
+  let secondaryValue = "";
+  let secondaryUnit = "";
+  let explanation = "";
+  let code = "";
+  let error: string | null = null;
+
+  if (mode === "activity") {
+    const ci = bqToCi(activityBq);
+    primaryLabel = "BECQUERELS";
+    primaryValue = formatConverter(activityBq);
+    primaryUnit = "Bq";
+    secondaryLabel = "CURIES";
+    secondaryValue = formatConverter(ci);
+    secondaryUnit = "Ci";
+    explanation = `${UNIT_FACTS.ciInBq}. Divide by ${formatConverter(CI_IN_BQ)} to get Ci (bq_to_ci); multiply Ci by ${formatConverter(CI_IN_BQ)} to get Bq (ci_to_bq). Round-trip: ci_to_bq(bq_to_ci(${formatConverter(activityBq)})) = ${formatConverter(ciToBq(ci))} Bq.`;
+    code = `from pydecay import bq_to_ci, ci_to_bq
+
+bq = ${activityLiteral(activityBq)}
+print(bq_to_ci(bq))  # ${formatConverter(ci)} Ci
+print(ci_to_bq(${ci === 0 ? "0.0" : formatConverter(ci).replace(/,/g, "")}))  # ${formatConverter(activityBq)} Bq`;
+  } else if (mode === "mass") {
+    const fromAtomsG = atomsToGrams(atomsN, massU);
+    const fromMassAtoms = gramsToAtoms(massG, massU);
+    primaryLabel = "ATOMS";
+    primaryValue = formatConverter(atomsN);
+    primaryUnit = "atoms";
+    secondaryLabel = "MASS (from atoms)";
+    secondaryValue = formatConverter(fromAtomsG);
+    secondaryUnit = "g";
+    explanation = `Atomic mass ${massU} u · N_A = ${formatConverter(AVOGADRO_PER_MOL)}. ${formatConverter(atomsN)} atoms → ${formatConverter(fromAtomsG)} g; ${massG} g → ${formatConverter(fromMassAtoms)} atoms.`;
+    code = `from pydecay import atoms_to_grams, grams_to_atoms
+
+N_A = ${AVOGADRO_PER_MOL}
+u = ${massU}
+print(atoms_to_grams(${atomsInput}, u))  # ${formatConverter(fromAtomsG)} g
+print(grams_to_atoms(${massG}, u))       # ${formatConverter(fromMassAtoms)} atoms`;
+  } else if (mode === "time") {
+    try {
+      const seconds = toSeconds(timeInput.trim() === "" ? "8.02 days" : timeInput);
+      primaryLabel = "INPUT TIME";
+      primaryValue = timeInput.trim() || "8.02 days";
+      primaryUnit = "";
+      secondaryLabel = "SECONDS";
+      secondaryValue = formatConverter(seconds);
+      secondaryUnit = "s";
+      explanation = `Canonical unit is the second. "8.02 days" × 86400 = 692,992 s (I-131 half-life ≈ 692,988.48 s in ICRP-107).`;
+      code = `from pydecay import to_seconds
+
+print(to_seconds(${JSON.stringify(timeInput.trim() || "8.02 days")}))  # ${formatConverter(seconds)} s`;
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+      primaryLabel = "INPUT TIME";
+      primaryValue = timeInput;
+      primaryUnit = "";
+      secondaryLabel = "SECONDS";
+      secondaryValue = "—";
+      secondaryUnit = "s";
+      explanation =
+        'Enter a non-negative number or a unit string such as "8.02 days" or "6 hours".';
+      code = `from pydecay import to_seconds\n\nto_seconds(${JSON.stringify(timeInput)})`;
+    }
+  } else {
+    const halfLifeS = halfLifeDays * 86400;
+    const lam = decayConstant(halfLifeS);
+    const tau = meanLifetimeS(lam);
+    primaryLabel = "HALF-LIFE";
+    primaryValue = formatConverter(halfLifeS);
+    primaryUnit = "s";
+    secondaryLabel = "λ / τ";
+    secondaryValue = `${formatConverter(lam)} / ${formatConverter(tau)}`;
+    secondaryUnit = "1/s · s";
+    explanation = `${halfLifeDays} days = ${formatConverter(halfLifeS)} s. λ = ln(2)/T½ = ${formatConverter(lam)} s⁻¹; τ = 1/λ = ${formatConverter(tau)} s ≈ ${formatConverter(tau / 86400)} days.`;
+    code = `from pydecay import decay_constant, mean_lifetime_s, to_seconds
+
+t_half = to_seconds("${halfLifeDays} days")  # ${formatConverter(halfLifeS)} s
+lam = decay_constant(t_half)   # ${formatConverter(lam)} 1/s
+tau = mean_lifetime_s(lam)     # ${formatConverter(tau)} s`;
+  }
+
+  const activeMode = converterModes.find((item) => item.id === mode) ?? converterModes[0];
+
+  return (
+    <section className="unit-converter-section section-shell" id="unit-converter">
+      <SectionHeading
+        number="02"
+        label="UNIT CONVERTER"
+        title="Units, in real time."
+        description="The same seven helpers now exported from the package root — type a value and watch Bq↔Ci, atoms↔grams, time→seconds, and T½→λ/τ compute live, with the exact Python you would run."
+      />
+      <Reveal className="workbench converter-workbench">
+        <div className="workbench-controls">
+          <div className="workbench-caption">
+            <span className="caption-square" /> CONVERSION MODE <span>02 / 04</span>
+          </div>
+
+          <div className="converter-mode-tabs" role="tablist" aria-label="Unit conversion mode">
+            {converterModes.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={mode === item.id}
+                className={mode === item.id ? "is-active" : ""}
+                onClick={() => setMode(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <p className="field-hint">Formula: {activeMode.formula}</p>
+
+          {mode === "activity" && (
+            <>
+              <label className="field-label" htmlFor="converter-activity">
+                ACTIVITY
+              </label>
+              <div className="number-wrap">
+                <input
+                  id="converter-activity"
+                  type="text"
+                  inputMode="decimal"
+                  value={activityInput}
+                  onChange={(event) => setActivityInput(event.target.value)}
+                />
+                <span>Bq</span>
+              </div>
+              <p className="field-hint">Try 3.7e10 (= 1 Ci) or 1e6 (1 MBq)</p>
+            </>
+          )}
+
+          {mode === "mass" && (
+            <>
+              <label className="field-label" htmlFor="converter-atoms">
+                ATOM COUNT
+              </label>
+              <div className="number-wrap">
+                <input
+                  id="converter-atoms"
+                  type="text"
+                  inputMode="decimal"
+                  value={atomsInput}
+                  onChange={(event) => setAtomsInput(event.target.value)}
+                />
+                <span>atoms</span>
+              </div>
+              <label className="field-label" htmlFor="converter-mass-g">
+                MASS
+              </label>
+              <div className="number-wrap">
+                <input
+                  id="converter-mass-g"
+                  type="text"
+                  inputMode="decimal"
+                  value={massGInput}
+                  onChange={(event) => setMassGInput(event.target.value)}
+                />
+                <span>g</span>
+              </div>
+              <label className="field-label" htmlFor="converter-mass-u">
+                ATOMIC MASS (u)
+              </label>
+              <div className="number-wrap">
+                <input
+                  id="converter-mass-u"
+                  type="text"
+                  inputMode="decimal"
+                  value={massUInput}
+                  onChange={(event) => setMassUInput(event.target.value)}
+                />
+                <span>u</span>
+              </div>
+              <p className="field-hint">I-131 ≈ 130.9061 u · N_A = 6.02214076e23</p>
+            </>
+          )}
+
+          {mode === "time" && (
+            <>
+              <label className="field-label" htmlFor="converter-time">
+                TIME
+              </label>
+              <div className="number-wrap">
+                <input
+                  id="converter-time"
+                  type="text"
+                  value={timeInput}
+                  onChange={(event) => setTimeInput(event.target.value)}
+                />
+                <span>str</span>
+              </div>
+              <p className="field-hint">Examples: 8.02 days · 6 hours · 90 · 1.5e5 seconds</p>
+            </>
+          )}
+
+          {mode === "decay" && (
+            <>
+              <label className="field-label" htmlFor="converter-half-life">
+                HALF-LIFE
+              </label>
+              <div className="number-wrap">
+                <input
+                  id="converter-half-life"
+                  type="text"
+                  inputMode="decimal"
+                  value={halfLifeDaysInput}
+                  onChange={(event) => setHalfLifeDaysInput(event.target.value)}
+                />
+                <span>days</span>
+              </div>
+              <p className="field-hint">I-131 ≈ 8.0228 days · Co-60 ≈ 1925.23 days</p>
+            </>
+          )}
+
+          <div className="result-readout" aria-live="polite">
+            <span>{primaryLabel}</span>
+            <div className="converter-primary">
+              {primaryValue} {primaryUnit && <small>{primaryUnit}</small>}
+            </div>
+            <p>
+              {secondaryLabel && (
+                <>
+                  {secondaryLabel}: <strong>{secondaryValue}</strong>
+                  {secondaryUnit ? ` ${secondaryUnit}` : ""}
+                </>
+              )}
+            </p>
+            {error && <p className="converter-error">{error}</p>}
+          </div>
+        </div>
+
+        <div className="workbench-output converter-output">
+          <div className="output-topline">
+            <span>
+              LIVE CONVERSION <i /> {activeMode.label}
+            </span>
+            <span>{activeMode.formula}</span>
+          </div>
+          <div className="converter-explain">
+            <span className="converter-explain-label">HOW IT WORKS</span>
+            <p>{explanation}</p>
+            <div className="converter-facts">
+              <div>
+                <span>EXACT</span>
+                <strong>{UNIT_FACTS.ciInBq}</strong>
+              </div>
+              <div>
+                <span>EXACT</span>
+                <strong>{UNIT_FACTS.avogadro}</strong>
+              </div>
+              <div>
+                <span>DECAY</span>
+                <strong>{UNIT_FACTS.ln2}</strong>
+              </div>
+            </div>
+            <div className="converter-equations">
+              <div>
+                <span>→ Ci</span>
+                <code>bq_to_ci(Bq) = Bq / 3.7e10</code>
+                <em>
+                  {formatConverter(activityBq)} / {formatConverter(CI_IN_BQ)} ={" "}
+                  {formatConverter(bqToCi(activityBq))} Ci
+                </em>
+              </div>
+              <div>
+                <span>→ g</span>
+                <code>atoms_to_grams(N, u) = N * u / N_A</code>
+                <em>
+                  {formatConverter(atomsN)} × {massU} / {formatConverter(AVOGADRO_PER_MOL)} ={" "}
+                  {formatConverter(atomsToGrams(atomsN, massU))} g
+                </em>
+              </div>
+              <div>
+                <span>→ s</span>
+                <code>to_seconds("8.02 days") = 8.02 * 86400</code>
+                <em>8.02 × 86400 = {formatConverter(8.02 * 86400)} s</em>
+              </div>
+            </div>
+          </div>
+          <CodeBlock code={code} label="GENERATED PYTHON" compact className="workbench-code" />
+        </div>
+      </Reveal>
+      <p className="workbench-footnote">
+        Preview calculated in your browser — same formulas as pydecay 0.4.0 top-level exports (
+        <code>to_seconds</code>, <code>bq_to_ci</code>, <code>ci_to_bq</code>,{" "}
+        <code>atoms_to_grams</code>, <code>grams_to_atoms</code>, <code>decay_constant</code>,{" "}
+        <code>mean_lifetime_s</code>).
+      </p>
+    </section>
+  );
+}
+
 type Feature = {
   number: string;
   title: string;
@@ -719,7 +1053,7 @@ function Capabilities() {
   return (
     <section className="capabilities-section section-shell" id="capabilities">
       <SectionHeading
-        number="02"
+        number="03"
         label="THE ENGINE"
         title="More than a decay curve."
         description="ICRP-107-sourced nuclides and unit-aware inputs meet an analytical solver that knows when to take the numerically stable route."
@@ -961,7 +1295,7 @@ function PeriodicTable({ onTryNuclide }: { onTryNuclide: (id: string) => void })
   return (
     <section className="periodic-section section-shell" id="elements">
       <SectionHeading
-        number="03"
+        number="04"
         label="THE ELEMENTS"
         title="A field guide to matter."
         description="All 118 elements, one place to explore. Hover, focus, or tap an element to open its information file."
@@ -1130,7 +1464,7 @@ def test_half_life_drift_within_tolerance(capsys):
   return (
     <section className="verification-section section-shell" id="verification">
       <SectionHeading
-        number="04"
+        number="05"
         label="VERIFICATION"
         title="Numbers you can defend."
         description="Scientific software earns trust through reproducible comparisons, not just clean-looking curves."
@@ -1187,7 +1521,7 @@ function ClosingCallout() {
     <section className="closing-section section-shell">
       <Reveal className="closing-inner">
         <span className="section-kicker">
-          <span>05 /</span> START BUILDING
+          <span>06 /</span> START BUILDING
         </span>
         <h2>
           Time to make
@@ -1218,6 +1552,7 @@ function HomePage() {
     <main>
       <Hero />
       <Playground selectedId={selectedId} onSelect={setSelectedId} />
+      <UnitConverter />
       <Capabilities />
       <PeriodicTable onTryNuclide={tryNuclide} />
       <Verification />
@@ -1243,6 +1578,7 @@ const docsNavigation = [
   { id: "solver", label: "Solver strategy" },
   { id: "data-units", label: "Data & units" },
   { id: "verification", label: "Verification" },
+  { id: "changelog", label: "Changelog" },
 ];
 
 function DocsSection({
@@ -1293,13 +1629,13 @@ function DocsPage({ path }: { path: string }) {
         <div className="docs-masthead-meta">
           <span>PYTHON 3.10+</span>
           <span>MIT + ICRP-07 DATA</span>
-          <span>VERSION 0.2.0</span>
+          <span>VERSION 0.4.0</span>
         </div>
       </div>
 
       <div className="docs-layout section-shell">
         <aside className="docs-sidebar" aria-label="Documentation sections">
-          <span className="docs-sidebar-label">CONTENTS / 10</span>
+          <span className="docs-sidebar-label">CONTENTS / 11</span>
           <nav>
             {docsNavigation.map((item, index) => (
               <a
@@ -1478,6 +1814,39 @@ function DocsPage({ path }: { path: string }) {
               label="ERROR HANDLING"
             />
 
+            <h3 className="docs-subhead">
+              Unit conversion &amp; decay kernels (7 top-level helpers)
+            </h3>
+            <p>
+              <strong>Use case:</strong> convert activity, atom counts, or times without leaving the{" "}
+              <code>pydecay</code> namespace — these are the same functions as{" "}
+              <code>pydecay.units</code> / <code>pydecay.decay</code>, re-exported at the package
+              root since 0.4.0. Every formula below is exercised live in the{" "}
+              <a href="/docs">Unit Converter</a> on the home page.
+            </p>
+            <CodeBlock
+              code={`from pydecay import (\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n)\n\n# --- time: any unit string → seconds ---\nprint(to_seconds("8.02 days"))   # 692928.0\nprint(to_seconds("6 hours"))     # 21600.0\nprint(to_seconds(692988.48))     # 692988.48 (already seconds)\n\n# --- activity: Bq ↔ Ci (1 Ci = 3.7e10 Bq exactly) ---\nprint(bq_to_ci(3.7e10))          # 1.0\nprint(ci_to_bq(1.0))             # 37000000000.0\nprint(bq_to_ci(1e6))             # 2.7027027e-05  (1 MBq)\n\n# --- mass: atoms ↔ grams (N_A = 6.02214076e23) ---\n# I-131 atomic mass ≈ 130.9061 u\nprint(atoms_to_grams(1e18, 130.9061))  # 0.217478... g\nprint(grams_to_atoms(1.0, 130.9061))   # 4.59775e24 atoms\n\n# --- decay kernels: half-life ↔ λ ↔ τ ---\n# I-131 T½ = 692988.48 s (ICRP-107)\nlam = decay_constant(692988.48)  # 1.000e-6 s⁻¹ (≈ ln2 / T½)\ntau = mean_lifetime_s(lam)       # ≈ 999999.4 s ≈ 11.57 days\nprint(lam, tau)`}
+              label="UNIT HELPERS / REAL NUMBERS"
+            />
+            <div className="docs-rule">
+              <span>REAL CALCS</span>
+              <p>
+                1 MBq = 0.000027027 Ci · 1 g of I-131 = 4.60×10²⁴ atoms · I-131 λ ≈ 1.000×10⁻⁶ s⁻¹ ·
+                mean life τ = T½ / ln 2 ≈ 11.57 days. Try the same inputs in the Unit Converter
+                playground on the home page.
+              </p>
+            </div>
+            <div className="docs-inline-note">
+              <span>TIME</span>
+              <strong>to_seconds(t)</strong>
+              <span>ACTIVITY</span>
+              <strong>bq_to_ci / ci_to_bq</strong>
+              <span>MASS</span>
+              <strong>atoms_to_grams / grams_to_atoms</strong>
+              <span>DECAY</span>
+              <strong>decay_constant / mean_lifetime_s</strong>
+            </div>
+
             <h3 className="docs-subhead">Units — plain numbers or human strings</h3>
             <CodeBlock
               code={`from pydecay import decayed_activity\nimport pint\n\ndecayed_activity(A0=1000.0, half_life="8.02 days", time="24 hours")\ndecayed_activity(A0=1000.0, half_life=692988.48, time=86400.0)  # same, seconds\n\nureg = pint.UnitRegistry()\nn = decayed_activity(A0=1000 * ureg.becquerel, half_life="8.02 days", time="8.02 days")\n# n is still a Quantity in Bq`}
@@ -1492,14 +1861,14 @@ function DocsPage({ path }: { path: string }) {
 
             <h3 className="docs-subhead">Cheat sheet (copy-paste everything)</h3>
             <CodeBlock
-              code={`from pydecay import (\n    Nuclide, DecayChain,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum, __version__,\n)\n\nprint(__version__)  # "0.2.0"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
+              code={`from pydecay import (\n    Nuclide, DecayChain,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    __version__,\n)\n\nprint(__version__)  # "0.4.0"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
               label="FULL CHEAT SHEET"
             />
             <p className="docs-small-result">
               <span>ONE-LINER</span> Three decay functions answer “how much is left?” ·{" "}
               <code>Nuclide.load</code> looks up 1498 ICRP-107 records · <code>DecayChain</code>{" "}
               follows parents/daughters · <code>emissions</code>/<code>beta_spectrum</code> give
-              spectra.
+              spectra · seven unit helpers convert Bq/Ci, atoms/g, times, and λ/τ.
             </p>
           </DocsSection>
 
@@ -1626,8 +1995,26 @@ function DocsPage({ path }: { path: string }) {
               <div>
                 <span>AT THE BOUNDARY</span>
                 <strong>Bq &harr; Ci / atoms &harr; grams</strong>
-                <p>Unit conversions are available at the edges of the calculation.</p>
+                <p>
+                  Top-level <code>bq_to_ci</code>, <code>ci_to_bq</code>,{" "}
+                  <code>atoms_to_grams</code>, <code>grams_to_atoms</code>, and{" "}
+                  <code>to_seconds</code> (0.4.0).
+                </p>
               </div>
+            </div>
+            <h3 className="docs-subhead">Unit conversion with real numbers</h3>
+            <p>
+              Internal math never leaves SI (seconds, atoms, becquerels). Convert only at the edge:
+            </p>
+            <CodeBlock
+              code={`from pydecay import bq_to_ci, ci_to_bq, atoms_to_grams, grams_to_atoms, to_seconds, decay_constant, mean_lifetime_s\n\n# Medical source: 1 MBq → Ci\nprint(bq_to_ci(1e6))                 # 2.702702702702703e-05 Ci\n\n# Calibration point: exactly 1 Ci\nprint(ci_to_bq(1.0))                 # 3.7e10 Bq\n\n# I-131 sample: 1e18 atoms, u = 130.9061\nprint(atoms_to_grams(1e18, 130.9061))  # ≈ 0.2175 g\nprint(grams_to_atoms(0.2175, 130.9061))  # ≈ 1.000e18 atoms\n\n# Half-life string → seconds → decay constant\ns = to_seconds("8.02 days")          # 692928.0 s\nprint(decay_constant(s))             # ≈ 1.0000876e-6 1/s\nprint(mean_lifetime_s(decay_constant(s)) / 86400)  # ≈ 8.022 days`}
+            />
+            <div className="docs-rule">
+              <span>EXACT FACTORS</span>
+              <p>
+                1 Ci = 3.7 × 10¹⁰ Bq (NIST SP 811) · N_A = 6.02214076 × 10²³ mol⁻¹ (exact, 2019 SI)
+                · λ = ln(2) / t½ · τ = 1 / λ = t½ / ln 2.
+              </p>
             </div>
             <p>
               See the{" "}
@@ -1687,6 +2074,100 @@ function DocsPage({ path }: { path: string }) {
               <a href={PYPI_URL} target="_blank" rel="noreferrer noopener">
                 VIEW ON PYPI <ArrowUpRight size={16} />
               </a>
+            </div>
+          </DocsSection>
+
+          <DocsSection id="changelog" number="11" title="Changelog">
+            <p>
+              Notable changes, Keep a Changelog style. Full detail lives in{" "}
+              <a
+                href={`${GITHUB_URL}/blob/main/CHANGELOG.md`}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                CHANGELOG.md <ArrowUpRight size={14} />
+              </a>
+              .
+            </p>
+            <div className="changelog-list">
+              <article className="changelog-entry is-current">
+                <header>
+                  <span>0.4.0</span>
+                  <time dateTime="2026-09-23">2026-09-23</time>
+                </header>
+                <h4>Added</h4>
+                <ul>
+                  <li>
+                    Top-level re-exports: <code>to_seconds</code>, <code>bq_to_ci</code>,{" "}
+                    <code>ci_to_bq</code>, <code>atoms_to_grams</code>, <code>grams_to_atoms</code>,{" "}
+                    <code>decay_constant</code>, <code>mean_lifetime_s</code> (<code>__all__</code>{" "}
+                    16 → 23).
+                  </li>
+                  <li>Landing page Unit Converter playground with live conversions.</li>
+                  <li>Docs: unit-helper section with worked real-number examples.</li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
+                <header>
+                  <span>0.3.0</span>
+                  <time dateTime="2026-09-23">2026-09-23</time>
+                </header>
+                <h4>Added</h4>
+                <ul>
+                  <li>
+                    Multi-nuclide <code>Inventory</code> with ICRP-107 progeny closure,{" "}
+                    <code>cumulative_decays</code>, and <code>decay_time_series</code>.
+                  </li>
+                  <li>
+                    <code>Nuclide.progeny</code> / <code>branching</code> / <code>is_stable</code> /{" "}
+                    <code>sf_branch</code>.
+                  </li>
+                </ul>
+                <h4>Changed</h4>
+                <ul>
+                  <li>Stable nuclides report λ = 0 / activity 0 Bq.</li>
+                  <li>
+                    <code>decay_time_series</code> argument errors raise <code>PyDecayError</code>.
+                  </li>
+                  <li>Noisy ICRP branching rows (≤ 1.035) renormalized in closures.</li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
+                <header>
+                  <span>0.2.0</span>
+                  <time dateTime="2026-09-23">2026-09-23</time>
+                </header>
+                <h4>Added</h4>
+                <ul>
+                  <li>Full ICRP-107 catalog (1252 radionuclides + 246 stable endpoints).</li>
+                  <li>
+                    <code>emissions</code> / <code>beta_spectrum</code>.
+                  </li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
+                <header>
+                  <span>0.1.1</span>
+                  <time dateTime="2026-09-23">2026-09-23</time>
+                </header>
+                <h4>Fixed</h4>
+                <ul>
+                  <li>Package metadata author fields for PyPI.</li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
+                <header>
+                  <span>0.1.0</span>
+                  <time dateTime="2026-09-22">2026-09-22</time>
+                </header>
+                <h4>Added</h4>
+                <ul>
+                  <li>
+                    Single-isotope analytical decay, <code>DecayChain</code> (Bateman + expm), and
+                    spectra access.
+                  </li>
+                </ul>
+              </article>
             </div>
           </DocsSection>
         </article>

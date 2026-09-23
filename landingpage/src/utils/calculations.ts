@@ -96,3 +96,110 @@ export function formatTimeTick(value: number): string {
   if (value >= 10) return String(Math.round(value));
   return value.toFixed(1);
 }
+
+/** Exact curie definition: 1 Ci = 3.7e10 Bq (NIST SP 811). Matches pydecay.units.CI_IN_BQ. */
+export const CI_IN_BQ = 3.7e10;
+
+/** Avogadro constant 1/mol (exact, 2019 SI). Matches pydecay.units.AVOGADRO_PER_MOL. */
+export const AVOGADRO_PER_MOL = 6.02214076e23;
+
+/** Becquerels → curies (pydecay.bq_to_ci). */
+export function bqToCi(bq: number): number {
+  return bq / CI_IN_BQ;
+}
+
+/** Curies → becquerels (pydecay.ci_to_bq). */
+export function ciToBq(ci: number): number {
+  return ci * CI_IN_BQ;
+}
+
+/** Atom count → grams via atomic mass in u (pydecay.atoms_to_grams). */
+export function atomsToGrams(nAtoms: number, atomicMassU: number): number {
+  return (nAtoms * atomicMassU) / AVOGADRO_PER_MOL;
+}
+
+/** Grams → atom count via atomic mass in u (pydecay.grams_to_atoms). */
+export function gramsToAtoms(mG: number, atomicMassU: number): number {
+  return (mG * AVOGADRO_PER_MOL) / atomicMassU;
+}
+
+/** λ = ln(2) / T½ for a half-life in seconds (pydecay.decay_constant). */
+export function decayConstant(halfLifeS: number): number {
+  return Math.LN2 / halfLifeS;
+}
+
+/** τ = 1 / λ mean lifetime in seconds (pydecay.mean_lifetime_s). */
+export function meanLifetimeS(lambda: number): number {
+  return 1 / lambda;
+}
+
+/** Multipliers to seconds for to_seconds-style parsing (aligns with common pint spellings). */
+const TIME_UNIT_SECONDS: Record<string, number> = {
+  s: 1,
+  sec: 1,
+  secs: 1,
+  second: 1,
+  seconds: 1,
+  min: 60,
+  mins: 60,
+  minute: 60,
+  minutes: 60,
+  h: 3600,
+  hr: 3600,
+  hrs: 3600,
+  hour: 3600,
+  hours: 3600,
+  d: 86400,
+  day: 86400,
+  days: 86400,
+  week: 604800,
+  weeks: 604800,
+  year: 31557600,
+  years: 31557600,
+  y: 31557600,
+  yr: 31557600,
+  yrs: 31557600,
+};
+
+/**
+ * Parse a time into seconds (pydecay.to_seconds).
+ * Plain non-negative finite numbers pass through; strings like "8.02 days"
+ * are multiplied by the unit factor. Invalid input throws.
+ */
+export function toSeconds(value: number | string): number {
+  if (typeof value === "number") {
+    if (!Number.isFinite(value)) throw new Error(`time must be finite, got ${value}`);
+    if (value < 0) throw new Error(`time must be >= 0, got ${value}`);
+    return value;
+  }
+  const match = value.trim().match(/^(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\s*([a-zA-Z]+)$/);
+  if (!match) throw new Error(`cannot parse time from ${JSON.stringify(value)}`);
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  const factor = TIME_UNIT_SECONDS[unit];
+  if (factor === undefined) throw new Error(`unknown time unit ${match[2]}`);
+  const seconds = amount * factor;
+  if (seconds < 0) throw new Error(`time must be >= 0, got ${seconds}`);
+  return seconds;
+}
+
+/** Locale-friendly number for converter readouts (scientific for extremes). */
+export function formatConverter(value: number): string {
+  if (!Number.isFinite(value)) return String(value);
+  if (value === 0) return "0";
+  const abs = Math.abs(value);
+  if (abs >= 1e-6 && abs < 1e15) {
+    return new Intl.NumberFormat("en-US", { maximumSignificantDigits: 12 }).format(value);
+  }
+  return value
+    .toExponential(6)
+    .replace(/(\.\d*?)0+e/, "$1e")
+    .replace(/\.e/, "e");
+}
+
+/** Factor description for the unit converter (e.g. "1 Ci = 3.7 × 10¹⁰ Bq"). */
+export const UNIT_FACTS = {
+  ciInBq: "1 Ci = 3.7 × 10¹⁰ Bq",
+  avogadro: "1 mol = 6.02214076 × 10²³ atoms",
+  ln2: "λ = ln(2) / t½   ·   τ = 1 / λ",
+} as const;
