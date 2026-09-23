@@ -47,6 +47,41 @@ def _require_finite(arr: np.ndarray, what: str) -> np.ndarray:
     return arr
 
 
+def _is_conservative(G: np.ndarray) -> bool:
+    """True when no column leaks atoms to an untracked sink (column sums ~ 0)."""
+    scale = max(float(np.max(np.abs(G))), 1.0)
+    return bool(np.all(np.abs(G.sum(axis=0)) <= 1e-12 * scale))
+
+
+def _conserves(result: np.ndarray, total: float) -> bool:
+    return abs(float(result.sum()) - total) <= 1e-9 * max(abs(total), 1.0)
+
+
+def _expm_apply(G: np.ndarray, t_s: float, init: np.ndarray) -> np.ndarray:
+    """Return expm(G * t) @ init, retrying with stepped powers if needed.
+
+    Single-shot expm can lose conservation on near-defective generators
+    (almost-equal lambdas). For conservative generators, verify the atom
+    total and retry with matrix_power(expm(G*t/n), n) for n = 2, 4, ... 256
+    until it holds. Non-conservative generators (partial branching to an
+    untracked sink) keep the single-shot result as-is. Never renormalizes.
+    """
+    single: np.ndarray = expm(G * t_s) @ init
+    if not _is_conservative(G):
+        return single
+    total = float(init.sum())
+    if _conserves(single, total):
+        return single
+    result: np.ndarray = single
+    steps = 2
+    while steps <= 256:
+        result = np.linalg.matrix_power(expm(G * (t_s / steps)), steps) @ init
+        if _conserves(result, total):
+            return result
+        steps *= 2
+    return result
+
+
 def bateman_closed_form(
     lambdas: Sequence[float], n0_parent: float, t_s: float
 ) -> np.ndarray:
@@ -97,5 +132,5 @@ def solve(
         return init.copy()
     if use_bateman(graph, n0, eps):
         return bateman_closed_form(graph.lambdas, float(init[0]), t_s)
-    result = expm(graph.generator() * t_s) @ init
+    result = _expm_apply(graph.generator(), t_s, init)
     return _require_finite(result, "matrix-exponential solution")

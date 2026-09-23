@@ -21,17 +21,17 @@ _REQUIRED_KEYS = (
     "fetched",
 )
 
-_NAME_RE = re.compile(r"^([A-Za-z]{1,2})-?(\d{1,3})([mM]?)$")
+_NAME_RE = re.compile(r"^([A-Za-z]{1,2})-?(\d{1,3})([mMnN]?)$")
 
 
 def normalize_nuclide_name(name: str) -> str:
-    """Normalize a nuclide name to canonical form like ``I-131`` or ``Tc-99m``."""
+    """Normalize a nuclide name to canonical form like ``I-131``, ``Tc-99m``, or ``Bi-212n``."""
     m = _NAME_RE.fullmatch(name.strip())
     if m is None:
         raise DataFormatError(f"cannot parse nuclide name {name!r}")
     element = m.group(1)[0].upper() + m.group(1)[1:].lower()
     mass = m.group(2)
-    meta = "m" if m.group(3) else ""
+    meta = m.group(3).lower()
     return f"{element}-{mass}{meta}"
 
 
@@ -110,12 +110,12 @@ class Nuclide:
 
     @classmethod
     def _bundled_records(cls) -> dict[str, Any]:
-        text = resources.files("pydecay.data").joinpath("nuclides.json").read_text(
+        text = resources.files("pydecay.data").joinpath("icrp107.json").read_text(
             encoding="utf-8"
         )
         data = json.loads(text)
         if not isinstance(data, dict):
-            raise DataFormatError("nuclides.json must be a JSON object")
+            raise DataFormatError("icrp107.json must be a JSON object")
         return data
 
     @classmethod
@@ -124,7 +124,7 @@ class Nuclide:
         norm = normalize_nuclide_name(name)
         records = cls._bundled_records()
         if norm not in records:
-            raise NuclideNotFoundError(f"nuclide {norm!r} not found in bundled dataset")
+            raise NuclideNotFoundError(f"nuclide {norm!r} not found in ICRP-107 catalog")
         return cls.from_record(norm, records[norm])
 
     @classmethod

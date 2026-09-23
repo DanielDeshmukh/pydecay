@@ -1,7 +1,7 @@
 """pydecay: radioactive decay mathematics.
 
 Analytical single-isotope decay, Bateman/expm decay chains with branching,
-IAEA-sourced nuclide data, and unit conversions (Bq/Ci, atoms/grams).
+ICRP-107 nuclide data, spectra access, and unit conversions (Bq/Ci, atoms/grams).
 """
 
 from pydecay.api import decayed_activity, decayed_atoms, remaining_fraction
@@ -16,8 +16,9 @@ from pydecay.exceptions import (
     UnitError,
 )
 from pydecay.nuclide import Nuclide
+from pydecay.spectra import beta_spectrum, emissions
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 __all__ = [
     "ChainDefinitionError",
@@ -30,7 +31,9 @@ __all__ = [
     "PyDecayError",
     "UnitError",
     "__version__",
+    "beta_spectrum",
     "decayed_activity",
     "decayed_atoms",
+    "emissions",
     "remaining_fraction",
 ]

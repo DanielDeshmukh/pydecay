@@ -78,9 +78,18 @@ def test_public_exports():
 
     for name in pydecay.__all__:
         assert hasattr(pydecay, name)
-    assert __version__ == "0.1.1"
+    assert __version__ == "0.2.0"
     assert issubclass(NuclideNotFoundError, PyDecayError)
     assert issubclass(ChainDefinitionError, PyDecayError)
+
+
+def test_spectra_exported():
+    import pydecay
+
+    assert "emissions" in pydecay.__all__
+    assert "beta_spectrum" in pydecay.__all__
+    assert callable(pydecay.emissions)
+    assert callable(pydecay.beta_spectrum)
 
 
 def test_remaining_fraction_generic_pattern():

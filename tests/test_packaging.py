@@ -32,6 +32,23 @@ def _project() -> dict:
     return data["project"]
 
 
+def _build_wheel(tmpdir: str) -> Path:
+    """Build a wheel into ``tmpdir`` and return the wheel path."""
+    import glob
+    import subprocess
+
+    root = Path(__file__).resolve().parents[1]
+    subprocess.run(
+        [sys.executable, "-m", "build", "--wheel", "-o", tmpdir],
+        cwd=root,
+        check=True,
+        capture_output=True,
+    )
+    wheels = glob.glob(str(Path(tmpdir) / "*.whl"))
+    assert len(wheels) == 1, f"expected exactly one wheel, got {wheels}"
+    return Path(wheels[0])
+
+
 def test_authors_name_and_email_are_separate_entries():
     authors = _project()["authors"]
     names = [a.get("name") for a in authors if "name" in a]
@@ -62,3 +79,25 @@ def test_author_email_has_no_display_name_wrapper():
         assert "<" not in email and ">" not in email, (
             f"email field must be a bare address, not Name <email>: {email!r}"
         )
+
+
+def test_wheel_excludes_fetch_scripts_and_keeps_icrp_assets(tmp_path):
+    """Wheel ships ICRP catalog/license and omits network fetch helpers."""
+    import zipfile
+
+    wheel = _build_wheel(str(tmp_path))
+    with zipfile.ZipFile(wheel) as zf:
+        names = zf.namelist()
+    assert any(n.endswith("pydecay/data/icrp107.json") for n in names)
+    assert any(n.endswith("pydecay/data/LICENSE.ICRP-07") for n in names)
+    assert any(n.endswith("pydecay/data/icrp107_rad.json.gz") for n in names)
+    assert any(n.endswith("pydecay/data/icrp107_bet.json.gz") for n in names)
+    assert not any("_fetch_icrp.py" in n for n in names)
+    assert not any("_fetch_iaea.py" in n for n in names)
+
+
+def test_wheel_size_budget(tmp_path):
+    """Hard fail if the wheel exceeds the 15 MB budget."""
+    wheel = _build_wheel(str(tmp_path))
+    size = wheel.stat().st_size
+    assert size <= 15_000_000, f"wheel size {size} exceeds 15 MB budget"

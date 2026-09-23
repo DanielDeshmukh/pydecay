@@ -51,13 +51,14 @@ test = [
 ]
 docs = ["mkdocs-material>=9.5"]
 dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4", "mypy>=1.8", "build>=1.0"]
+icrp = ["pyreadr>=0.5"]
 
 [tool.hatch.version]
 path = "src/pydecay/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pydecay"]
-exclude = ["**/_fetch_iaea.py"]
+exclude = ["**/_fetch_iaea.py", "**/_fetch_icrp.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -65,7 +66,7 @@ addopts = "-q"
 
 [tool.coverage.run]
 source = ["pydecay"]
-omit = ["*/data/_fetch_iaea.py"]
+omit = ["*/data/_fetch_iaea.py", "*/data/_fetch_icrp.py"]
 branch = false
 
 [tool.coverage.report]
@@ -97,3 +98,7 @@ packages = ["pydecay"]
 [[tool.mypy.overrides]]
 module = "pint.*"
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "pyreadr.*"
+ignore_missing_imports = true

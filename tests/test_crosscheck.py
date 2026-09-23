@@ -4,6 +4,8 @@ Reports relative drift for every overlapping nuclide; fails only beyond
 REL_TOL. Skipped entirely when radioactivedecay is not installed.
 """
 
+import math
+
 import pytest
 
 rr = pytest.importorskip("radioactivedecay", reason="radioactivedecay not installed")
@@ -97,7 +99,10 @@ def test_half_life_drift_within_tolerance(capsys):
         for name in names:
             a = ours[name].half_life_s
             b = _rr_half_life_s(name)
-            rel = abs(a - b) / b
+            if math.isinf(a) and math.isinf(b):
+                rel = 0.0
+            else:
+                rel = abs(a - b) / b
             if rel <= REL_TOL:
                 flag = "OK  "
             elif name in ACCEPTED_DEVIATIONS:

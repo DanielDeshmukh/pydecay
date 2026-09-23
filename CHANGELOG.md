@@ -5,6 +5,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Full ICRP-107 default catalog (1252 radionuclides + stable endpoints).
+- `pydecay.spectra.emissions` / `beta_spectrum` (RAD/BET).
+- IAEA 47 retained as differential test fixture only.
+
+### Changed
+- `Nuclide.load` / `load_all` now read `icrp107.json` (version 0.2.0).
+
 ## [0.1.1] - 2026-09-23
 
 ### Fixed

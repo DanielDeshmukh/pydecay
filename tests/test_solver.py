@@ -77,6 +77,19 @@ def test_exactly_degenerate_is_finite():
     np.testing.assert_allclose(out, ref, rtol=1e-10, atol=1e-15)
 
 
+def test_near_defective_expm_conserves_atoms():
+    """Regression: single-shot expm loses atoms on a near-defective generator.
+
+    Falsifier from property test_linear_chain_conservation: lam_parent=1.0,
+    lam_mid=0.9999999999999999, t=4.0, n0=1.0 returned sum ~1.020487.
+    """
+    g = DecayGraph.linear([1.0, 0.9999999999999999, 0.0])
+    assert use_bateman(g, [1.0, 0.0, 0.0]) is False
+    out = solve(g, [1.0, 0.0, 0.0], 4.0)
+    assert out.sum() == pytest.approx(1.0, rel=1e-9)
+    assert np.all(out >= -1e-9)
+
+
 def test_conservation_linear_chain_to_stable():
     g = DecayGraph.linear([1.0, 0.0], names=["A", "stable"])
     out = solve(g, [3.0, 0.0], 10.0)

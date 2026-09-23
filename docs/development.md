@@ -44,21 +44,23 @@ mkdocs serve
 
 ## Data regeneration (network required)
 
-Never hand-type half-life values. Regenerate the bundle with:
+Never hand-type half-life values. Regenerate the ICRP-107 catalog with:
 
 ```bash
-python -m pydecay.data._fetch_iaea
+python -m pydecay.data._fetch_icrp --ndx-path path/to/ICRP-07.NDX
 ```
 
-- Endpoint: IAEA Live Chart API (CSV; requires `User-Agent: Livechart/1.0`).
-- Metastable isomers (`Tc-99m`, `Pa-234m`) come from `fields=levels`.
-- **Mandatory-six gate:** the script exits non-zero if any of
-  Co-60, Cs-137, I-131, C-14, U-238, Tc-99m failed to fetch.
+- SHA-256 pins verified before any artifact is written (see
+  `src/pydecay/data/_fetch_icrp.py`).
+- Spectra: `python -m pydecay.data._fetch_icrp --spectra` (requires
+  `pip install -e ".[icrp]"` for `pyreadr`).
 - Every record must carry `source`, `source_url`, and `fetched`.
+- IAEA Live Chart is the **differential test oracle only**
+  (`tests/fixtures/iaea_nuclides_47.json`).
 - Document any accepted evaluation drift in
   [`Data sources`](data-sources.md) with both values.
 
-The fetch script is a build-time tool and is excluded from the wheel
+The fetch scripts are build-time tools and are excluded from the wheel
 (`[tool.hatch.build.targets.wheel] exclude` in `pyproject.toml`).
 
 ## CI layout
@@ -74,9 +76,9 @@ The fetch script is a build-time tool and is excluded from the wheel
 ## Project layout
 
 ```text
-src/pydecay/          # package (api, chain, decay, graph, _solver, units, nuclide, exceptions)
-src/pydecay/data/     # nuclides.json + _fetch_iaea.py (build-time, not in wheel)
-tests/                # pytest suite (known values, units, data, chains, cross-check)
+src/pydecay/          # package (api, chain, decay, graph, _solver, units, nuclide, spectra, exceptions)
+src/pydecay/data/     # icrp107.json + RAD/BET gzip + _fetch_*.py (build-time, not in wheel)
+tests/                # pytest suite (known values, units, data, chains, cross-check, golden)
 examples/             # runnable scripts
 docs/                 # MkDocs pages (this site)
 mkdocs.yml            # site config

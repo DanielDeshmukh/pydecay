@@ -39,7 +39,7 @@ from pydecay import DecayChain
 chain = DecayChain([0.693, 0.0], names=["parent", "stable"])
 print(chain.at(t="1 days", n0={"parent": 1e6, "stable": 0.0}))
 
-# Or build from bundled IAEA names, ordered parent -> daughter
+# Or build from bundled ICRP-107 names, ordered parent -> daughter
 chain = DecayChain.from_isotopes(["I-131", "Xe-131"])  # if both are bundled
 ```
 
