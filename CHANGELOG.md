@@ -9,6 +9,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Full ICRP-107 default catalog (1252 radionuclides + stable endpoints).
 - `pydecay.spectra.emissions` / `beta_spectrum` (RAD/BET).
 - IAEA 47 retained as differential test fixture only.
+- Multi-nuclide `Inventory` with automatic ICRP-107 progeny closure:
+  immutable `decay`, `cumulative_decays` (block matrix exponential),
+  `decay_time_series` (linear/log grids), and accessors
+  (`numbers` / `activities` / `masses` / `total_activity` / `half_lives`).
+- `Nuclide.progeny` / `branching` / `is_stable` / `sf_branch` graph fields.
+- Top-level export: `from pydecay import Inventory`.
+- Cross-checks vs `radioactivedecay` 0.6.1 for inventory numbers,
+  cumulative decays, and time-series curves.
 
 ### Changed
 - `Nuclide.load` / `load_all` now read `icrp107.json` (version 0.2.0).

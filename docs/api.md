@@ -73,6 +73,10 @@ mass is in unified atomic mass units (u).
 | `half_life_s` | `float` | Half-life in plain seconds |
 | `atomic_mass_u` | `float` | Atomic mass in u |
 | `decay_modes` | `tuple[DecayMode, ...]` | Best-effort modes + branch fractions |
+| `progeny` | `tuple[str, ...]` | Direct daughter names from the catalog (empty if stable) |
+| `branching` | `tuple[float, ...]` | Branch fractions aligned with `progeny` |
+| `is_stable` | `bool` | `True` for stable endpoints (λ = 0) |
+| `sf_branch` | `float \| None` | Spontaneous-fission branch when present |
 | `source`, `source_url`, `fetched` | `str` | Provenance metadata |
 
 ```python
@@ -81,6 +85,52 @@ i131 = Nuclide.load("I-131")
 i131.lambda_          # 1/s
 i131.half_life        # pint Quantity (seconds)
 i131.activity(N=1e6, t="8.02 days")
+i131.progeny          # ("Xe-131m", "Xe-131")
+i131.branching        # matching branch fractions
+```
+
+## `Inventory`
+
+Immutable multi-nuclide inventory with automatic progeny closure. Seeds are
+user amounts; every reachable daughter (down to stable) is included in one
+joint decay graph. Construction accepts plain numbers or pint Quantities in
+`units` (`"Bq"` default, also `"Ci"`, `"atoms"`, `"g"`). Kind (plain vs
+Quantity) is mirrored by accessors and preserved across `decay`.
+
+### Constructor
+
+| Constructor | Description |
+|---|---|
+| `Inventory(contents, *, units="Bq", eps=1e-8)` | `{"I-131": 1e6}` → seeds + full progeny closure |
+
+### Methods / properties
+
+| Member | Signature | Description |
+|---|---|---|
+| `.decay` | `decay(t) -> Inventory` | New inventory advanced by `t`; never mutates `self` |
+| `.cumulative_decays` | `cumulative_decays(t) -> dict[str, float \| Quantity]` | Atoms that decayed on `[0, t]` per species (stable = 0); mirrors kind |
+| `.decay_time_series` | `decay_time_series(t_end, *, npoints=501, time_scale="linear", t_start=0.0) -> tuple[list[float], dict[str, list[float]]]` | Atom-number curves over the closure; plain floats (does not mirror Quantity) |
+| `.numbers` | `numbers() -> dict[str, float \| Quantity]` | Atom counts now; mirrors kind |
+| `.activities` | `activities() -> dict[str, float \| Quantity]` | Activity (Bq) now; mirrors kind |
+| `.masses` | `masses() -> dict[str, float \| Quantity]` | Mass (g) now; mirrors kind |
+| `.total_activity` | `total_activity() -> float` | Sum of activities over the closure (always Bq float) |
+| `.half_lives` | `half_lives() -> dict[str, float]` | Half-life (s) per species; `inf` for stable |
+| `.names` | `tuple[str, ...]` | Species in graph order (seeds first, then BFS progeny) |
+| `.n_species` | `int` | Closure size |
+| `.seeds` | `tuple[str, ...]` | Normalized constructor seeds |
+| `.units` | `str` | Canonical unit label for plain-number amounts |
+
+`time_scale` is `"linear"` or `"log"`; log grids require `t_start > 0` and
+`t_end > 0` (`InvalidTimeError`). Negative time raises `InvalidTimeError`.
+`npoints < 2` raises `ValueError`. Progeny cycles raise `ChainDefinitionError`.
+
+```python
+from pydecay import Inventory
+inv = Inventory({"Mo-99": 1e6}, units="Bq")   # pulls in Tc-99m, Tc-99, ...
+after = inv.decay("8.02 days")
+after.activities()                             # dict species -> Bq
+inv.cumulative_decays("1 day")                 # atoms decayed on [0, 1 day]
+t, series = inv.decay_time_series("8 days", npoints=101)
 ```
 
 ## `DecayChain`
@@ -123,10 +173,10 @@ All package-raised errors derive from `PyDecayError`.
 | `PyDecayError` | Base class; also wraps scipy failures and non-finite solver output (never returns NaN) |
 | `NuclideNotFoundError` | Unknown isotope name at load time |
 | `InvalidHalfLifeError` | λ ≤ 0, NaN, or non-finite half-life / decay constant |
-| `InvalidTimeError` | `t < 0` or non-finite time |
-| `ChainDefinitionError` | Empty chain, length mismatch, branching fractions sum > 1, λ = 0 on a non-terminal species, unknown species in `n0` |
+| `InvalidTimeError` | `t < 0` or non-finite time; log-series bounds ≤ 0 |
+| `ChainDefinitionError` | Empty chain, length mismatch, branching fractions sum > 1, λ = 0 on a non-terminal species, unknown species in `n0`; also empty/duplicate Inventory seeds, progeny cycle, or closure depth > 256 |
 | `DataFormatError` | Bundled JSON record missing required keys or carrying non-parseable values; unparseable nuclide name |
-| `UnitError` | Unparseable unit string, dimensionally wrong pint input, or string on `N0` / `A0` |
+| `UnitError` | Unparseable unit string, dimensionally wrong pint input, or string on `N0` / `A0` / Inventory amount |
 
 ```python
 from pydecay import PyDecayError, NuclideNotFoundError, UnitError

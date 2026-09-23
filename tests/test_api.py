@@ -81,6 +81,16 @@ def test_public_exports():
     assert __version__ == "0.2.0"
     assert issubclass(NuclideNotFoundError, PyDecayError)
     assert issubclass(ChainDefinitionError, PyDecayError)
+    assert "Inventory" in pydecay.__all__
+    assert pydecay.Inventory is not None
+
+
+def test_inventory_top_level_export():
+    from pydecay import Inventory
+
+    inv = Inventory({"Co-60": 1.0e6}, units="Bq")
+    assert inv.seeds == ("Co-60",)
+    assert "Ni-60" in inv.names
 
 
 def test_spectra_exported():

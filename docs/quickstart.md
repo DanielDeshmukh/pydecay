@@ -64,6 +64,24 @@ print(b.at(t="1 day"))
 print(b.activity(t="1 day"))  # dict species -> Bq
 ```
 
+## Inventory (multi-nuclide with daughters)
+
+List only what you have; the progeny graph fills in the rest.
+
+```python
+from pydecay import Inventory
+
+inv = Inventory({"Mo-99": 1e6}, units="Bq")  # pulls Tc-99m, Tc-99, ...
+after = inv.decay("8.02 days")
+print(after.activities())                     # dict species -> Bq
+print(inv.cumulative_decays("1 day"))         # atoms decayed on [0, t]
+t, series = inv.decay_time_series("8 days", npoints=101)
+```
+
+`decay` returns a new inventory (immutable). Units on the constructor:
+`"Bq"` (default), `"Ci"`, `"atoms"`, `"g"`. Log time axis:
+`time_scale="log"` with `t_start > 0`.
+
 ## pint in / pint out
 
 ```python

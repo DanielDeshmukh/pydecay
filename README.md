@@ -6,8 +6,8 @@
 
 Radioactive decay mathematics for Python: analytical single-isotope decay,
 Bateman decay chains with a matrix-exponential stability guard, branching
-topologies, ICRP-107 nuclide data (1252+ isotopes), spectra access, and
-activity unit conversions.
+topologies, multi-nuclide inventories with automatic progeny ingrowth, ICRP-107
+nuclide data (1252+ isotopes), spectra access, and activity unit conversions.
 
 Author: **Daniel Deshmukh** · [github.com/DanielDeshmukh/pydecay](https://github.com/DanielDeshmukh/pydecay)
 
@@ -22,7 +22,7 @@ Requires Python >= 3.10. Runtime dependencies: `numpy`, `scipy`, `pint`.
 ## Quickstart
 
 ```python
-from pydecay import Nuclide, DecayChain, decayed_activity, remaining_fraction
+from pydecay import Nuclide, DecayChain, Inventory, decayed_activity, remaining_fraction
 
 # Single isotope: 1000 Bq of I-131 after one half-life -> 500 Bq
 i131 = Nuclide.load("I-131")
@@ -41,6 +41,10 @@ b = DecayChain.branching(
     branches={"D1": 0.6, "D2": 0.3},
     lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5},
 )
+
+# Multi-nuclide inventory: seeds only; daughters (Tc-99m, Tc-99, ...) auto-close
+inv = Inventory({"Mo-99": 1e6}, units="Bq")
+print(inv.decay("8.02 days").activities())
 ```
 
 ## What is implemented
@@ -51,6 +55,7 @@ b = DecayChain.branching(
 | Linear chains | Bateman (1910) closed form when well-separated | Bateman 1910 |
 | Stability guard | `scipy.linalg.expm` on the generator matrix for degenerate lambda, branching, or nonzero daughter ICs | spec fix option 2; Cetnar 2006 (deferred optimization) |
 | Branching | star topologies with fractions <= 1 (remainder = untracked sink) | general linear ODE system |
+| Inventory | multi-nuclide seeds with ICRP-107 progeny closure, immutable `decay`, cumulative decays, linear/log time series | general linear ODE system |
 | Data | 1252+ ICRP-107 radionuclides + stable endpoints (default catalog) | ICRP Publication 107 |
 | Spectra | `emissions` / `beta_spectrum` (RAD/BET), lazy-loaded | ICRP-107 RAD/BET files |
 | Units | seconds / atoms / Bq internally; Bq<->Ci and atoms<->grams at the boundary | NIST SP 811; BIPM SI (N_A exact) |

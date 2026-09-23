@@ -118,11 +118,82 @@ for name in list(Nuclide.load_all())[:5]:
     print(name)
 ```
 
+The catalog also carries the decay graph: `progeny`, `branching`,
+`is_stable`, and `sf_branch` describe where each nuclide goes.
+
 If the name doesn't exist: raises `NuclideNotFoundError`.
 
 ---
 
-## 3. Chains: `DecayChain`
+## 3. Multi-nuclide inventory: `Inventory`
+
+**Use case:** "I have Mo-99. Track Tc-99m and everything else that grows in."
+
+You list **seeds**; pydecay walks the ICRP-107 progeny graph and builds one
+joint decay system (daughters included, down to stable).
+
+```python
+from pydecay import Inventory
+
+# Plain numbers are Bq by default
+inv = Inventory({"Mo-99": 1e6})
+print(inv.seeds)        # ('Mo-99',)
+print(inv.names)        # Mo-99, Tc-99m, Tc-99, ... (full closure)
+print(inv.n_species)
+
+# Advance time — returns a NEW inventory (never mutates inv)
+after = inv.decay("8.02 days")
+print(after.activities())   # dict species -> Bq (or Quantities if you started with them)
+print(after.numbers())      # atom counts
+print(inv.total_activity()) # sum of activities, always a plain float in Bq
+```
+
+### Units on the constructor
+
+```python
+Inventory({"Co-60": 1e6})                    # Bq (default)
+Inventory({"Co-60": 1e6}, units="Ci")
+Inventory({"Co-60": 1e18}, units="atoms")
+Inventory({"Co-60": 1.0}, units="g")
+```
+
+Stable nuclides cannot take activity units — use `units="atoms"` for them.
+
+### Cumulative decays and time series
+
+```python
+# How many atoms of each species decayed during [0, t]?
+cum = inv.cumulative_decays("1 day")
+# stable species report 0.0
+
+# Atom-number curves for plotting / export
+t_seconds, series = inv.decay_time_series("8 days", npoints=101)
+# series["Mo-99"] is a list of plain floats, one per time point
+
+# Log time axis (e.g. many half-lives)
+t_log, series_log = inv.decay_time_series(
+    "1e6 seconds", npoints=200, time_scale="log", t_start=1.0
+)
+```
+
+| Method | Returns |
+|---|---|
+| `.decay(t)` | New `Inventory` at time `t` |
+| `.cumulative_decays(t)` | Atoms decayed on `[0, t]` per species |
+| `.decay_time_series(t_end, ...)` | `(list[float] seconds, dict[str, list[float]])` atom counts |
+| `.numbers()` / `.activities()` / `.masses()` | Current state dicts |
+| `.total_activity()` | Sum of activities (Bq, always `float`) |
+| `.half_lives()` | Half-life (s) per species (`inf` if stable) |
+| `.names` / `.seeds` / `.n_species` / `.units` | Introspection |
+
+**Immutable:** `decay` returns a new object. Negative `t` raises
+`InvalidTimeError`; log series need `t_start > 0`. Unknown nuclide names raise
+`NuclideNotFoundError`. A progeny cycle (should not exist in ICRP-107) raises
+`ChainDefinitionError`.
+
+---
+
+## 4. Chains: `DecayChain`
 
 **Use case:** "Parent decays to daughter, which decays to stable. How much of each at time t?"
 
@@ -165,7 +236,7 @@ print(chain.activity(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))
 
 ---
 
-## 4. Branching: `DecayChain.branching(...)`
+## 5. Branching: `DecayChain.branching(...)`
 
 **Use case:** "One parent can go two ways (60% / 30%). Track both daughters."
 
@@ -187,7 +258,7 @@ If they sum to 0.9, the remaining 10% is an **untracked sink** (leaves the syste
 
 ---
 
-## 5. Radiation spectra (v0.2.0)
+## 6. Radiation spectra (v0.2.0)
 
 ### `emissions(name)`
 
@@ -225,18 +296,18 @@ Unknown names raise `NuclideNotFoundError`.
 
 ---
 
-## 6. Errors — what can go wrong (and what you catch)
+## 7. Errors — what can go wrong (and what you catch)
 
 All errors inherit from `PyDecayError`.
 
 | Exception | When |
 |---|---|
 | `NuclideNotFoundError` | Typo in nuclide name: `Nuclide.load("Xx-999")` |
-| `InvalidTimeError` | Negative or infinite time |
+| `InvalidTimeError` | Negative or infinite time; log-series bounds ≤ 0 |
 | `InvalidHalfLifeError` | Half-life ≤ 0 or NaN |
-| `ChainDefinitionError` | Bad chain: empty, fractions > 1, unknown species in `n0` |
+| `ChainDefinitionError` | Bad chain, empty/duplicate Inventory seeds, progeny cycle |
 | `DataFormatError` | Broken data record, or spectra on a stable nuclide |
-| `UnitError` | Bad unit string, or string on `N0` / `A0` |
+| `UnitError` | Bad unit string, or string on `N0` / `A0` / Inventory amount |
 | `PyDecayError` | Base class — catch this to catch **everything** above |
 
 ```python
@@ -256,7 +327,7 @@ except PyDecayError as e:
 
 ---
 
-## 7. Units (optional, but nice)
+## 8. Units (optional, but nice)
 
 You can pass plain numbers (SI: seconds, Bq, atoms) **or** human strings:
 
@@ -284,12 +355,13 @@ n = decayed_atoms(N0=N0, half_life="8.02 days", time="24 hours")
 
 ---
 
-## 8. Cheat sheet (copy-paste)
+## 9. Cheat sheet (copy-paste)
 
 ```python
 from pydecay import (
     Nuclide,
     DecayChain,
+    Inventory,
     decayed_activity,
     decayed_atoms,
     remaining_fraction,
@@ -307,6 +379,12 @@ print(i131.half_life_s)
 print(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500
 print(decayed_atoms(N0=1e6, half_life="8.02 days", time="24 hours"))
 print(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5
+
+# --- inventory (auto progeny closure) ---
+inv = Inventory({"Mo-99": 1e6}, units="Bq")
+print(inv.decay("8.02 days").activities())
+print(inv.cumulative_decays("1 day"))
+t, series = inv.decay_time_series("8 days", npoints=101)
 
 # --- chain ---
 chain = DecayChain.from_isotopes(["Sr-90", "Y-90"])
@@ -328,7 +406,7 @@ print(len(rows), len(E))
 
 ---
 
-## 9. Where to go next
+## 10. Where to go next
 
 | Topic | Page |
 |---|---|
@@ -342,5 +420,6 @@ print(len(rows), len(E))
 **One-line summary:**
 `decayed_activity` / `decayed_atoms` / `remaining_fraction` answer "how much is left?"
 · `Nuclide.load` looks up real half-lives (1498 ICRP-107 records)
+· `Inventory` tracks a seed mix and every daughter that grows in
 · `DecayChain` follows parents and daughters through time
 · `emissions` / `beta_spectrum` give you radiation spectra.
