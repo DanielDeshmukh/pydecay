@@ -272,9 +272,11 @@ class Inventory:
         """Return a new inventory with every species advanced by ``t`` (immutable)."""
         t_s = to_seconds(t)
         result = solve(self._graph, self._n0, t_s, eps=self._eps)
+        # Numerical noise can leave tiny negatives on stable end-caps; state is non-negative.
+        n_t = tuple(max(float(x), 0.0) for x in result)
         return Inventory._from_state(
             graph=self._graph,
-            n0=tuple(float(x) for x in result),
+            n0=n_t,
             seeds=self._seeds,
             units=self._units,
             was_quantity=self._was_quantity,

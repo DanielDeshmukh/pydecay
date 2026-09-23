@@ -122,15 +122,21 @@ def solve(
     if len(n0) != n:
         raise ChainDefinitionError(f"n0 has length {len(n0)}, expected {n}")
     init = np.asarray(n0, dtype=np.float64)
-    if not np.all(np.isfinite(init)) or np.any(init < 0):
+    if not np.all(np.isfinite(init)):
+        raise PyDecayError(f"n0 must be finite, got {n0!r}")
+    # Prior expm steps can leave tiny negatives on stable end-caps (~1e-16);
+    # accept and zero those so chained Inventory.decay calls stay composable.
+    scale = max(float(np.max(np.abs(init))), 1.0)
+    if np.any(init < -1e-12 * scale):
         raise PyDecayError(f"n0 must be finite and >= 0, got {n0!r}")
+    init = np.maximum(init, 0.0)
     if not math.isfinite(t_s):
         raise InvalidTimeError(f"time must be finite, got {t_s}")
     if t_s < 0:
         raise InvalidTimeError(f"time must be >= 0, got {t_s}")
     if t_s == 0.0:
         return init.copy()
-    if use_bateman(graph, n0, eps):
+    if use_bateman(graph, init.tolist(), eps):
         return bateman_closed_form(graph.lambdas, float(init[0]), t_s)
     result = _expm_apply(graph.generator(), t_s, init)
     return _require_finite(result, "matrix-exponential solution")
