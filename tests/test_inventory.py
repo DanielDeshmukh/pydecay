@@ -217,6 +217,62 @@ def test_decay_conservation_sr90_chain():
     assert out["Zr-90"] > 0.0
 
 
+def test_cumulative_decays_zero_time():
+    inv = Inventory({"Co-60": 1.0e18}, units="atoms")
+    cum = inv.cumulative_decays(0.0)
+    assert set(cum) == set(inv.names)
+    for val in cum.values():
+        assert val == 0.0
+
+
+def test_cumulative_decays_single_isotope_analytic():
+    nuc = Nuclide.load("Co-60")
+    n0 = 1.0e18
+    inv = Inventory({"Co-60": n0}, units="atoms")
+    t = 1.0e6
+    cum = inv.cumulative_decays(t)
+    expected = n0 * (1.0 - math.exp(-nuc.lambda_ * t))
+    assert cum["Co-60"] == pytest.approx(expected, rel=1e-9)
+    assert cum["Ni-60"] == 0.0
+
+
+def test_cumulative_decays_stable_is_zero():
+    inv = Inventory({"I-131": 1.0e18}, units="atoms")
+    cum = inv.cumulative_decays(1.0e6)
+    assert cum["Xe-131"] == 0.0
+    assert cum["I-131"] > 0.0
+    assert cum["Xe-131m"] >= 0.0
+
+
+def test_cumulative_decays_matches_number_balance():
+    inv = Inventory({"Sr-90": 1.0e12}, units="atoms")
+    t = 1.0e9
+    before = inv.numbers()
+    after = inv.decay(t).numbers()
+    cum = inv.cumulative_decays(t)
+    # Parent lost exactly the atoms it decayed.
+    assert before["Sr-90"] - after["Sr-90"] == pytest.approx(cum["Sr-90"], rel=1e-9)
+    # Sr-90 -> Y-90 (branch 1.0): growth of Y-90 equals Sr-90 decays minus Y-90 decays.
+    assert after["Y-90"] + cum["Y-90"] == pytest.approx(cum["Sr-90"], rel=1e-9)
+    # Y-90 -> Zr-90 (branch 1.0, stable): Zr-90 growth equals Y-90 decays.
+    assert after["Zr-90"] == pytest.approx(cum["Y-90"], rel=1e-9)
+    assert cum["Zr-90"] == 0.0
+
+
+def test_cumulative_decays_negative_time_rejected():
+    inv = Inventory({"Co-60": 1.0}, units="atoms")
+    with pytest.raises(InvalidTimeError):
+        inv.cumulative_decays(-1.0)
+
+
+def test_cumulative_decays_covers_full_closure_and_mirrors_kind():
+    inv = Inventory({"I-131": 1.0e18 * ureg.atom}, units="atoms")
+    cum = inv.cumulative_decays("1 days")
+    assert set(cum) == set(inv.names)
+    assert isinstance(cum["I-131"], pint.Quantity)
+    assert cum["I-131"].to("atom").magnitude > 0.0
+
+
 def test_accessors_cover_full_closure():
     inv = Inventory({"I-131": 1.0e18}, units="atoms")
     expected = set(inv.names)

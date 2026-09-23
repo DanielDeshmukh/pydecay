@@ -8,6 +8,9 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
+from scipy.linalg import expm  # type: ignore[import-untyped]
+
 from pydecay._solver import DEGENERATE_EPS, solve
 from pydecay.exceptions import ChainDefinitionError, UnitError
 from pydecay.graph import DecayGraph
@@ -278,6 +281,42 @@ class Inventory:
             nuclides=self._nuclides,
             eps=self._eps,
         )
+
+    def cumulative_decays(self, t: float | str | Any) -> dict[str, Any]:
+        """Atoms that decayed for each species during ``[0, t]``, mirroring kind.
+
+        Uses the block matrix exponential ``exp([[G, I], [0, 0]] * t)`` whose
+        upper-right block is ``U(t) = integral exp(G s) ds`` (``G`` may be
+        singular when stable nuclides are present, so ``G^{-1}(expm(G t) - I)``
+        is not used). Stable species report ``0.0``.
+        """
+        t_s = to_seconds(t)
+        n = len(self._graph.names)
+        n0 = np.asarray(self._n0, dtype=np.float64)
+        if t_s == 0.0:
+            cum = np.zeros(n, dtype=np.float64)
+        else:
+            g = self._graph.generator()
+            block = np.zeros((2 * n, 2 * n), dtype=np.float64)
+            block[:n, :n] = g
+            block[:n, n:] = np.eye(n, dtype=np.float64)
+            upper_right = expm(block * t_s)[:n, n:]
+            integrated = upper_right @ n0
+            lambdas = np.asarray(self._graph.lambdas, dtype=np.float64)
+            fractions = np.asarray(self._graph.fractions, dtype=np.float64)
+            production = fractions.T @ (lambdas * integrated)
+            n_t = solve(self._graph, self._n0, t_s, eps=self._eps)
+            cum = n0 - n_t + production
+            # Numerical noise can yield tiny negatives; cumulative decays are >= 0.
+            scale = max(float(np.max(np.abs(n0))), 1.0)
+            cum = np.where(np.abs(cum) < 1e-12 * scale, 0.0, cum)
+        out: dict[str, Any] = {}
+        for name, val in zip(self._graph.names, cum, strict=True):
+            if self._was_quantity:
+                out[name] = mirror_quantity(float(val), 1 * ureg.atom, "atom")
+            else:
+                out[name] = float(val)
+        return out
 
     def numbers(self) -> dict[str, Any]:
         """Atom counts of every species in the closure, mirroring constructor kind."""
