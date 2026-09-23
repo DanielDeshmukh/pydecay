@@ -38,12 +38,19 @@ def _build_wheel(tmpdir: str) -> Path:
     import subprocess
 
     root = Path(__file__).resolve().parents[1]
-    subprocess.run(
+    result = subprocess.run(
         [sys.executable, "-m", "build", "--wheel", "-o", tmpdir],
         cwd=root,
-        check=True,
+        check=False,
         capture_output=True,
+        text=True,
     )
+    if result.returncode != 0:
+        raise AssertionError(
+            f"python -m build failed (exit {result.returncode}):\n"
+            f"--- stdout ---\n{result.stdout}\n"
+            f"--- stderr ---\n{result.stderr}"
+        )
     wheels = glob.glob(str(Path(tmpdir) / "*.whl"))
     assert len(wheels) == 1, f"expected exactly one wheel, got {wheels}"
     return Path(wheels[0])
