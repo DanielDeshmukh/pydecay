@@ -34,7 +34,7 @@ API_LEVELS = "https://nds.iaea.org/relnsd/v1/data?fields=levels&nuclides={code}"
 UA = "Livechart/1.0"
 SOURCE = "IAEA Live Chart of Nuclides (nds.iaea.org)"
 SOURCE_URL = "https://nds.iaea.org/relnsd/vcharthtml/VChartHTML.html"
-OUT_PATH = Path(__file__).resolve().parent / "nuclides.json"
+OUT_PATH = Path(__file__).resolve().parents[3] / "tests" / "fixtures" / "iaea_nuclides_47.json"
 
 KEV_PER_U = 931494.10242
 

@@ -110,12 +110,12 @@ class Nuclide:
 
     @classmethod
     def _bundled_records(cls) -> dict[str, Any]:
-        text = resources.files("pydecay.data").joinpath("nuclides.json").read_text(
+        text = resources.files("pydecay.data").joinpath("icrp107.json").read_text(
             encoding="utf-8"
         )
         data = json.loads(text)
         if not isinstance(data, dict):
-            raise DataFormatError("nuclides.json must be a JSON object")
+            raise DataFormatError("icrp107.json must be a JSON object")
         return data
 
     @classmethod
@@ -124,7 +124,7 @@ class Nuclide:
         norm = normalize_nuclide_name(name)
         records = cls._bundled_records()
         if norm not in records:
-            raise NuclideNotFoundError(f"nuclide {norm!r} not found in bundled dataset")
+            raise NuclideNotFoundError(f"nuclide {norm!r} not found in ICRP-107 catalog")
         return cls.from_record(norm, records[norm])
 
     @classmethod
