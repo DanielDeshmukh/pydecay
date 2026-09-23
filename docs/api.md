@@ -5,6 +5,10 @@ Signatures are the shipped ones; each section has a minimal example.
 
 ## Module-level functions
 
+**Time contract:** every public decay function requires `time >= 0`
+(finite). Negative time raises `InvalidTimeError`. Back-calculating
+earlier activities ("what was it yesterday?") is out of scope for v2.
+
 ### `decayed_atoms`
 
 ```python

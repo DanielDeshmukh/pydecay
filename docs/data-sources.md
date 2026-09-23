@@ -85,3 +85,16 @@ Systematic note: many year-scale OK rows sit at rel ≈ 2.136e-05 — a
 year-convention difference (our Julian `1 y = 31557600 s` vs
 radioactivedecay's internal `year_conv` ≈ 3.155691e7 s), two orders of
 magnitude below tolerance and harmless.
+
+## Golden values
+
+`tests/golden/golden_values.json` freezes externally checked tuples for CI:
+
+- **verified_on** records the last hand-check against the primary source
+  (IAEA Live Chart; analytic formulas documented per entry).
+- Entry `source` / `source_url` / `note` are mandatory -- bare numbers are
+  rejected by `tests/golden/test_golden.py`.
+- CI never re-fetches NNDC/IAEA; it only asserts the bundle still matches
+  the frozen goldens.
+- To re-verify: open each `source_url`, compare `half_life_s`, update
+  `verified_on` and any changed values in the same commit.

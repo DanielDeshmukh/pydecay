@@ -27,6 +27,9 @@ print(f)  # 0.03125
 `remaining_fraction` is dimensionless and always returns a plain float.
 `decayed_atoms` mirrors the kind of `N0`; `decayed_activity` mirrors `A0`.
 
+All times must be `>= 0`; negative time raises `InvalidTimeError`.
+Back-calculation is not supported in v2.
+
 ## Linear chain
 
 ```python
