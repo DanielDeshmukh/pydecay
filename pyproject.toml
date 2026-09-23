@@ -36,7 +36,12 @@ Repository = "https://github.com/DanielDeshmukh/pydecay"
 Issues = "https://github.com/DanielDeshmukh/pydecay/issues"
 
 [project.optional-dependencies]
-test = ["pytest>=7.4", "pytest-cov>=4.1", "radioactivedecay>=0.1"]
+test = [
+  "pytest>=7.4",
+  "pytest-cov>=4.1",
+  "hypothesis>=6",
+  "radioactivedecay>=0.6,<1",
+]
 docs = ["mkdocs-material>=9.5"]
 dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4", "mypy>=1.8", "build>=1.0"]
 
