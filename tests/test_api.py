@@ -83,6 +83,15 @@ def test_public_exports():
     assert issubclass(ChainDefinitionError, PyDecayError)
 
 
+def test_spectra_exported():
+    import pydecay
+
+    assert "emissions" in pydecay.__all__
+    assert "beta_spectrum" in pydecay.__all__
+    assert callable(pydecay.emissions)
+    assert callable(pydecay.beta_spectrum)
+
+
 def test_remaining_fraction_generic_pattern():
     """Spec 6 example pattern: after n half-lives, fraction is 2**-n."""
     for n in (1, 2, 5, 10):
