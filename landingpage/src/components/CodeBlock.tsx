@@ -8,7 +8,8 @@ type CodeBlockProps = {
   className?: string;
 };
 
-const tokenPattern = /(#[^\n]*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:from|import|print|None|True|False)\b|\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/gi;
+const tokenPattern =
+  /(#[^\n]*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:from|import|print|None|True|False)\b|\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)/gi;
 
 function highlight(code: string) {
   return code.split(tokenPattern).map((part, index) => {
@@ -44,7 +45,12 @@ async function copyToClipboard(text: string) {
   field.remove();
 }
 
-export default function CodeBlock({ code, label = "PYTHON", compact = false, className = "" }: CodeBlockProps) {
+export default function CodeBlock({
+  code,
+  label = "PYTHON",
+  compact = false,
+  className = "",
+}: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const timeout = useRef<number | undefined>(undefined);
 
@@ -65,12 +71,19 @@ export default function CodeBlock({ code, label = "PYTHON", compact = false, cla
     <div className={`code-block ${compact ? "code-block-compact" : ""} ${className}`}>
       <div className="code-block-header">
         <span>{label}</span>
-        <button type="button" onClick={handleCopy} className="code-copy" aria-label={copied ? "Code copied" : "Copy code"}>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="code-copy"
+          aria-label={copied ? "Code copied" : "Copy code"}
+        >
           {copied ? <Check size={14} /> : <Copy size={14} />}
           <span>{copied ? "COPIED" : "COPY"}</span>
         </button>
       </div>
-      <pre><code>{highlight(code)}</code></pre>
+      <pre>
+        <code>{highlight(code)}</code>
+      </pre>
     </div>
   );
 }

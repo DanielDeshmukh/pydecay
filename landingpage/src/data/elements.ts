@@ -28,7 +28,7 @@ export type ElementInfo = {
   column: number;
 };
 
-function getPosition(number: number) {
+export function getPosition(number: number) {
   if (number === 1) return { period: 1, group: 1, row: 1, column: 1 };
   if (number === 2) return { period: 1, group: 18, row: 1, column: 18 };
 
@@ -70,7 +70,7 @@ function getPosition(number: number) {
   return { period: 7, group, row: 7, column: group };
 }
 
-function getCategory(groupBlock: string) {
+export function getCategory(groupBlock: string) {
   const categories: Record<string, string> = {
     "alkali metal": "Alkali metal",
     "alkaline earth metal": "Alkaline earth metal",
@@ -127,10 +127,7 @@ export function enrichElementsWithApi(data: unknown): ElementInfo[] | null {
     if (!record) return element;
     return {
       ...element,
-      mass:
-        typeof record.atomic_mass === "number"
-          ? String(record.atomic_mass)
-          : element.mass,
+      mass: typeof record.atomic_mass === "number" ? String(record.atomic_mass) : element.mass,
       configuration:
         typeof record.electron_configuration_semantic === "string"
           ? record.electron_configuration_semantic
@@ -140,13 +137,9 @@ export function enrichElementsWithApi(data: unknown): ElementInfo[] | null {
           ? record.electronegativity
           : element.electronegativity,
       state:
-        typeof record.state_at_room_temp === "string"
-          ? record.state_at_room_temp
-          : element.state,
+        typeof record.state_at_room_temp === "string" ? record.state_at_room_temp : element.state,
       meltingPoint:
-        typeof record.melting_point === "number"
-          ? record.melting_point
-          : element.meltingPoint,
+        typeof record.melting_point === "number" ? record.melting_point : element.meltingPoint,
     };
   });
 }
