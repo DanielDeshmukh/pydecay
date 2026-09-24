@@ -1,6 +1,6 @@
 # pydecay
 
-[![PyPI version](https://img.shields.io/pypi/v/pydecay?cacheBust=0.5.0)](https://pypi.org/project/pydecay/)
+[![PyPI version](https://img.shields.io/pypi/v/pydecay?cacheBust=0.5.1)](https://pypi.org/project/pydecay/)
 [![Python 3.10+](https://img.shields.io/pypi/pyversions/pydecay)](https://pypi.org/project/pydecay/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Tests](https://img.shields.io/badge/coverage-%3E%3E90%25-brightgreen)](tests/)
@@ -46,7 +46,7 @@ Requires **Python ≥ 3.10**. Runtime dependencies: `numpy`, `scipy`, `pint`.
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.5.0"
+print(pydecay.__version__)  # "0.5.1"
 ```
 
 ---

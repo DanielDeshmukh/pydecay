@@ -30,7 +30,7 @@ from pydecay.nuclide import Nuclide
 from pydecay.spectra import beta_spectrum, emissions
 from pydecay.units import atoms_to_grams, bq_to_ci, ci_to_bq, grams_to_atoms, to_seconds
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 __all__ = [
     "ChainDefinitionError",

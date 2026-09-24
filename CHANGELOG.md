@@ -5,6 +5,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-24
+
+### Changed
+- Docs: clarify ICRP-107 catalog counting method — 1252 radionuclides +
+  246 stable progeny endpoints = 1498 records (README, user guide,
+  `docs/data-sources.md`, landing page). Stable endpoints are graph
+  end-caps, not duplicate nuclides or decay-mode rows.
+- Docs: fix citation label `ICRP-07 DATA` → `ICRP-107 DATA` in the
+  landing-page docs masthead and footer (real filenames such as
+  `LICENSE.ICRP-07` are unchanged).
+
 ## [0.5.0] - 2026-09-23
 
 ### Added

@@ -4,8 +4,26 @@
 
 - **Source:** ICRP Publication 107, *Nuclear Decay Data for Dosimetric
   Calculations* (Ann. ICRP 38(3), 2008). Catalog built from `ICRP-07.NDX`.
-- **Artifact:** `src/pydecay/data/icrp107.json` — 1252 radioactive
-  nuclides + stable progeny endpoints (1498 total records).
+- **Artifact:** `src/pydecay/data/icrp107.json` — **1498 records total**,
+  counted as:
+  - **1252 radioactive radionuclides** — exactly the 1252 data lines in
+    `ICRP-07.NDX` (one record per nuclide, not per decay branch; a nuclide
+    with multiple branches is still one record).
+  - **246 stable progeny endpoints** — stable daughters reached by the decay
+    graph (e.g. Tc-99, Pb-206) so `Inventory` can close chains to a stable
+    end without lookups failing. These carry `source = "ICRP-107-stable"`
+    and `is_stable = true`.
+
+  ICRP-107 itself documents 1,252 radionuclides; the extra 246 records are
+  the stable endpoints pydecay adds for graph completeness, not duplicates
+  and not decay-mode rows. Verify with:
+
+  ```python
+  from pydecay import Nuclide
+  all_n = Nuclide.load_all()
+  stable = sum(1 for n in all_n.values() if n.is_stable)
+  assert len(all_n) == 1498 and stable == 246 and len(all_n) - stable == 1252
+  ```
 - **Rebuild:**
 
 ```bash

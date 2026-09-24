@@ -886,7 +886,7 @@ tau = mean_lifetime_s(lam)     # ${formatConverter(tau)} s`;
         </div>
       </Reveal>
       <p className="workbench-footnote">
-        Preview calculated in your browser — same formulas as pydecay 0.5.0 top-level exports (
+        Preview calculated in your browser — same formulas as pydecay 0.5.1 top-level exports (
         <code>to_seconds</code>, <code>bq_to_ci</code>, <code>ci_to_bq</code>,{" "}
         <code>atoms_to_grams</code>, <code>grams_to_atoms</code>, <code>decay_constant</code>,{" "}
         <code>mean_lifetime_s</code>).
@@ -1629,7 +1629,7 @@ function DocsPage({ path }: { path: string }) {
         <div className="docs-masthead-meta">
           <span>PYTHON 3.10+</span>
           <span>MIT + ICRP-107 DATA</span>
-          <span>VERSION 0.5.0</span>
+          <span>VERSION 0.5.1</span>
         </div>
       </div>
 
@@ -1886,7 +1886,7 @@ function DocsPage({ path }: { path: string }) {
 
             <h3 className="docs-subhead">Cheat sheet (copy-paste everything)</h3>
             <CodeBlock
-              code={`from pydecay import (\n    Nuclide, DecayChain, Inventory,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    dn_dt, da_dt, decay_ode_residual,\n    __version__,\n)\n\nprint(__version__)  # "0.5.0"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nprint(dn_dt(1e6, "8.02 days"))      # atoms/s\nprint(da_dt(1000.0, "8.02 days", 0.0))  # Bq/s\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
+              code={`from pydecay import (\n    Nuclide, DecayChain, Inventory,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    dn_dt, da_dt, decay_ode_residual,\n    __version__,\n)\n\nprint(__version__)  # "0.5.1"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nprint(dn_dt(1e6, "8.02 days"))      # atoms/s\nprint(da_dt(1000.0, "8.02 days", 0.0))  # Bq/s\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
               label="FULL CHEAT SHEET"
             />
             <p className="docs-small-result">
@@ -2118,6 +2118,23 @@ function DocsPage({ path }: { path: string }) {
             </p>
             <div className="changelog-list">
               <article className="changelog-entry is-current">
+                <header>
+                  <span>0.5.1</span>
+                  <time dateTime="2026-09-24">2026-09-24</time>
+                </header>
+                <h4>Changed</h4>
+                <ul>
+                  <li>
+                    Clarified ICRP-107 catalog counting: 1252 radionuclides + 246 stable endpoints =
+                    1498 records (stable endpoints are graph end-caps, not duplicates).
+                  </li>
+                  <li>
+                    Fixed citation label <code>ICRP-07 DATA</code> → <code>ICRP-107 DATA</code> in
+                    the docs masthead and footer.
+                  </li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
                 <header>
                   <span>0.5.0</span>
                   <time dateTime="2026-09-23">2026-09-23</time>

@@ -9,7 +9,7 @@ describe("landing page fact cross-checks", () => {
     radionuclides: 1252,
     totalRecords: 1498,
     elements: 118,
-    version: "0.5.0",
+    version: "0.5.1",
     coverageFloor: 90,
     i131HalfLifeS: 692988.48,
     tc99mHalfLifeS: 21654.0,
@@ -35,8 +35,8 @@ describe("landing page fact cross-checks", () => {
     expect(hours).toBeLessThan(6.03);
   });
 
-  it("version is semver 0.5.0", () => {
-    expect(siteClaims.version).toBe("0.5.0");
+  it("version is semver 0.5.1", () => {
+    expect(siteClaims.version).toBe("0.5.1");
     expect(siteClaims.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 

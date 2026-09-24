@@ -90,7 +90,7 @@ def test_public_exports():
 
     for name in pydecay.__all__:
         assert hasattr(pydecay, name)
-    assert __version__ == "0.5.0"
+    assert __version__ == "0.5.1"
     assert issubclass(NuclideNotFoundError, PyDecayError)
     assert issubclass(ChainDefinitionError, PyDecayError)
     assert "Inventory" in pydecay.__all__
