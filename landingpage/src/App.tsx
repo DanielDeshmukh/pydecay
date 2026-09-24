@@ -1628,7 +1628,7 @@ function DocsPage({ path }: { path: string }) {
         </p>
         <div className="docs-masthead-meta">
           <span>PYTHON 3.10+</span>
-          <span>MIT + ICRP-07 DATA</span>
+          <span>MIT + ICRP-107 DATA</span>
           <span>VERSION 0.5.0</span>
         </div>
       </div>
@@ -1743,10 +1743,11 @@ function DocsPage({ path }: { path: string }) {
             </h3>
             <p>
               <strong>Use case:</strong> “What is the half-life of I-131, and where did the number
-              come from?” 1498 ICRP-107 records ship with the package.
+              come from?” 1252 ICRP-107 radionuclides (+ 246 stable endpoints = 1498 records) ship
+              with the package.
             </p>
             <CodeBlock
-              code={`from pydecay import Nuclide\n\ni131 = Nuclide.load("I-131")\nprint(i131.half_life)      # pint Quantity (seconds)\nprint(i131.half_life_s)    # plain seconds: 692988.48\nprint(i131.lambda_)        # decay constant 1/s\nprint(i131.atomic_mass_u)  # mass in u\nprint(i131.source)         # "ICRP-107"\n\nall_nuclides = Nuclide.load_all()  # dict of all 1498 records`}
+              code={`from pydecay import Nuclide\n\ni131 = Nuclide.load("I-131")\nprint(i131.half_life)      # pint Quantity (seconds)\nprint(i131.half_life_s)    # plain seconds: 692988.48\nprint(i131.lambda_)        # decay constant 1/s\nprint(i131.atomic_mass_u)  # mass in u\nprint(i131.source)         # "ICRP-107"\n\nall_nuclides = Nuclide.load_all()  # 1252 radionuclides + 246 stable = 1498 records`}
             />
             <div className="docs-inline-note">
               <span>LOOKUP</span>
@@ -1890,11 +1891,11 @@ function DocsPage({ path }: { path: string }) {
             />
             <p className="docs-small-result">
               <span>ONE-LINER</span> Three decay functions answer “how much is left?” ·{" "}
-              <code>Nuclide.load</code> looks up 1498 ICRP-107 records · <code>DecayChain</code>{" "}
-              follows parents/daughters · <code>emissions</code>/<code>beta_spectrum</code> give
-              spectra · seven unit helpers convert Bq/Ci, atoms/g, times, and λ/τ ·{" "}
-              <code>dn_dt</code>/<code>da_dt</code>/<code>decay_ode_residual</code> report how fast
-              things change right now.
+              <code>Nuclide.load</code> looks up 1252 ICRP-107 radionuclides (1498 records with
+              stable endpoints) · <code>DecayChain</code> follows parents/daughters ·{" "}
+              <code>emissions</code>/<code>beta_spectrum</code> give spectra · seven unit helpers
+              convert Bq/Ci, atoms/g, times, and λ/τ · <code>dn_dt</code>/<code>da_dt</code>/
+              <code>decay_ode_residual</code> report how fast things change right now.
             </p>
           </DocsSection>
 
@@ -2254,7 +2255,7 @@ function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <span>BUILT BY DANIEL DESHMUKH / MIT LICENSE + ICRP-07 DATA (NON-PROFIT)</span>
+        <span>BUILT BY DANIEL DESHMUKH / MIT LICENSE + ICRP-107 DATA (NON-PROFIT)</span>
         <span>
           ELEMENT REFERENCE:{" "}
           <a href="https://periodictableofelements.org" target="_blank" rel="noreferrer noopener">

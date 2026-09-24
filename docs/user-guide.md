@@ -103,7 +103,7 @@ print(i131.source)          # provenance, e.g. "ICRP-107"
 | Member | What it is |
 |---|---|
 | `Nuclide.load(name)` | Load one by name (`"I-131"`, `"Co-60"`, `"Tc-99m"`) |
-| `Nuclide.load_all()` | Dict of **all** 1498 bundled records |
+| `Nuclide.load_all()` | Dict of **all** bundled records (1252 radionuclides + 246 stable endpoints = 1498) |
 | `.half_life` / `.half_life_s` | Half-life (Quantity or seconds) |
 | `.lambda_` | Decay constant λ = ln2 / half-life (`0.0` if stable) |
 | `.activity(N, t=...)` | Activity of N atoms after time t |
@@ -495,7 +495,8 @@ print(len(rows), len(E))
 
 **One-line summary:**
 `decayed_activity` / `decayed_atoms` / `remaining_fraction` answer "how much is left?"
-· `Nuclide.load` looks up real half-lives (1498 ICRP-107 records)
+· `Nuclide.load` looks up real half-lives (1252 ICRP-107 radionuclides + 246
+stable endpoints = 1498 records)
 · `Inventory` tracks a seed mix and every daughter that grows in
 · `DecayChain` follows parents and daughters through time
 · `emissions` / `beta_spectrum` give you radiation spectra.

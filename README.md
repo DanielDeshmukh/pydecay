@@ -8,7 +8,8 @@
 **Radioactive decay mathematics for Python** — analytical single-isotope decay,
 Bateman chains with a matrix-exponential stability guard, branching topologies,
 multi-nuclide inventories with automatic progeny ingrowth, ICRP-107 nuclide
-data (1498 records), radiation spectra, and activity unit conversions.
+data (1252 radionuclides + 246 stable endpoints = 1498 records), radiation
+spectra, and activity unit conversions.
 
 Author: **Daniel Deshmukh** · [github.com/DanielDeshmukh/pydecay](https://github.com/DanielDeshmukh/pydecay) · [Demo](https://pydecay-model-remains.vercel.app)
 
@@ -129,7 +130,7 @@ print(i131.progeny)         # ("Xe-131m", "Xe-131")
 print(i131.branching)       # matching branch fractions
 print(i131.source)          # "ICRP-107"
 
-# Full catalog: 1498 records
+# Full catalog: 1252 ICRP-107 radionuclides + 246 stable endpoints = 1498 records
 all_nuclides = Nuclide.load_all()
 ```
 
@@ -341,11 +342,12 @@ except PyDecayError as e:
 | [`CHANGELOG.md`](CHANGELOG.md) | Keep a Changelog history |
 
 **One-line summary:** `decayed_activity` / `decayed_atoms` / `remaining_fraction`
-answer “how much is left?” · `Nuclide.load` looks up real half-lives (1498
-ICRP-107 records) · `Inventory` tracks a seed mix and every daughter that
-grows in · `DecayChain` follows parents and daughters through time ·
-`emissions` / `beta_spectrum` give radiation spectra · unit helpers convert
-Bq↔Ci, atoms↔grams, and parse times to seconds.
+answer “how much is left?” · `Nuclide.load` looks up real half-lives (1252
+ICRP-107 radionuclides + 246 stable endpoints = 1498 records) · `Inventory`
+tracks a seed mix and every daughter that grows in · `DecayChain` follows
+parents and daughters through time · `emissions` / `beta_spectrum` give
+radiation spectra · unit helpers convert Bq↔Ci, atoms↔grams, and parse times
+to seconds.
 
 ---
 
