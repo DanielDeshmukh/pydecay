@@ -1,0 +1,27 @@
+NIST XCOM: Photon Cross Sections Database
+https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html
+(source of nist_mu.json.gz; notice copied verbatim from
+https://physics.nist.gov/PhysRefData/Xcom/Text/download.html, fetched 2026-09-25)
+
+XCOM Copyright Notice:
+
+© 1990, 1998 copyright by the U.S. Secretary of Commerce on behalf of the
+United States of America. All rights reserved. NIST reserves the right to
+charge for these data in the future.
+
+Disclaimer:
+
+National Institute of Standards and Technology (NIST) uses its best efforts
+to deliver a high quality copy of the Database and to verify that the data
+contained therein have been selected on the basis of sound scientific
+judgement. However, NIST makes no guarantees, expressed or implied, about its
+quality, reliability, or any other characteristic, and shall not be liable
+for any damage that may result from errors or omissions in the Database.
+Moreover, NIST assumes no responsibility whatsoever for its use by other
+parties.
+
+Certain trade names and company products may be mentioned in the text to
+specify adequately computer products and/or equipment needed to use the
+Database. In no case does such identification imply endorsement by NIST of
+these computer products and/or equipment, nor does it imply that these
+products and/or equipment are necessarily the best available for the purpose.

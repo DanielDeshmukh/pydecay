@@ -15,3 +15,5 @@ site/
 data/raw_icrp/*
 !data/raw_icrp/.gitkeep
 !data/raw_icrp/README.md
+data/raw_nist/*
+!data/raw_nist/.gitkeep

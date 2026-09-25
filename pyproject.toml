@@ -59,7 +59,7 @@ path = "src/pydecay/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/pydecay"]
-exclude = ["**/_fetch_iaea.py", "**/_fetch_icrp.py"]
+exclude = ["**/_fetch_iaea.py", "**/_fetch_icrp.py", "**/_fetch_nist.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -67,7 +67,7 @@ addopts = "-q"
 
 [tool.coverage.run]
 source = ["pydecay"]
-omit = ["*/data/_fetch_iaea.py", "*/data/_fetch_icrp.py"]
+omit = ["*/data/_fetch_iaea.py", "*/data/_fetch_icrp.py", "*/data/_fetch_nist.py"]
 branch = false
 
 [tool.coverage.report]

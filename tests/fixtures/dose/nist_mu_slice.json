@@ -1,0 +1,13 @@
+{
+  "source": "NIST XCOM",
+  "source_url": "https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html",
+  "fetched": "2026-09-24",
+  "units": {"E_MeV": "MeV", "mu_over_rho": "cm^2/g"},
+  "materials": {
+    "lead": {
+      "density_g_cm3": 11.35,
+      "E_MeV": [0.01, 0.02, 0.05, 0.1, 1.0],
+      "mu_over_rho": [1.1111, 2.2222, 3.3333, 4.4444, 5.5555]
+    }
+  }
+}
