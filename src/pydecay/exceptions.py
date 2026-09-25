@@ -31,3 +31,7 @@ class UnitError(PyDecayError):
 
 class DataFormatError(PyDecayError):
     """Raised when a bundled data record is missing keys or has bad values."""
+
+
+class MaterialError(PyDecayError):
+    """Raised when a shielding material name is unknown or an energy is out of range."""
