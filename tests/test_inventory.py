@@ -7,9 +7,11 @@ import pint
 import pytest
 
 from pydecay import inventory as inventory_mod
+from pydecay.dose import dose_rate
 from pydecay.exceptions import (
     ChainDefinitionError,
     DataFormatError,
+    DoseDataError,
     InvalidTimeError,
     NuclideNotFoundError,
     PyDecayError,
@@ -509,3 +511,44 @@ def test_max_closure_depth_rejected(monkeypatch):
     monkeypatch.setattr(inventory_mod, "_MAX_CLOSURE_DEPTH", 1)
     with pytest.raises(ChainDefinitionError, match="max depth"):
         Inventory({"Mo-99": 1.0}, units="atoms")
+
+
+
+def test_inventory_dose_rate_is_sum_of_singles():
+    inv = Inventory({"Co-60": 1e6, "Cs-137": 1e6})
+    total = inv.dose_rate(r=1.0)
+    part1 = dose_rate(1e6, "Co-60", 1.0)
+    part2 = dose_rate(1e6, "Cs-137", 1.0)
+    assert total == pytest.approx(part1 + part2, rel=1e-9)
+
+
+def test_inventory_dose_rate_mirrors_pint_input():
+    r = 1.0 * ureg.meter
+    val = Inventory({"Co-60": 1e6}).dose_rate(r=r)
+    assert hasattr(val, "units")  # Quantity out when Quantity in
+
+
+def test_inventory_dose_rate_bucket1_seed_raises():
+    with pytest.raises(DoseDataError):
+        Inventory({"Sr-90": 1e6}).dose_rate(r=1.0)
+
+
+def test_inventory_dose_rate_time_decays_first():
+    inv = Inventory({"Co-60": 1e6})
+    half = Nuclide.load("Co-60").half_life_s
+    got = inv.dose_rate(r=1.0, time=half)
+    assert got == pytest.approx(inv.dose_rate(r=1.0) * 0.5, rel=1e-6)
+
+
+def test_inventory_dose_rate_ambient_ge_kerma():
+    inv = Inventory({"Co-60": 1e6})
+    assert inv.dose_rate(1.0, quantity="ambient") >= inv.dose_rate(1.0, quantity="kerma")
+
+
+def test_inventory_dose_rate_skips_unbundled_closure_rows():
+    # Ba-137m is active after decay but not bundled; its photons belong to the
+    # Cs-137 row (Risoe 137Cs+137Ba m), so it must be skipped, not raise.
+    inv = Inventory({"Cs-137": 1e6})
+    got = inv.dose_rate(r=1.0, time=86400.0)
+    assert got > 0
+

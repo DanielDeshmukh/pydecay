@@ -12,8 +12,10 @@ import numpy as np
 from scipy.linalg import expm  # type: ignore[import-untyped]
 
 from pydecay._solver import DEGENERATE_EPS, solve
+from pydecay.dose import dose_rate
 from pydecay.exceptions import (
     ChainDefinitionError,
+    DoseDataError,
     InvalidTimeError,
     PyDecayError,
     UnitError,
@@ -437,6 +439,57 @@ class Inventory:
     def half_lives(self) -> dict[str, float]:
         """Half-life (s) per species from the catalog; ``inf`` for stable nuclides."""
         return {nuc.name: float(nuc.half_life_s) for nuc in self._nuclides}
+
+    def dose_rate(
+        self,
+        r: float | str | Any = 1.0,
+        *,
+        quantity: str = "kerma",
+        time: float | str | Any = 0.0,
+    ) -> float | Any:
+        """Summed point-source dose rate from this inventory at distance ``r``.
+
+        Sums :func:`pydecay.dose.dose_rate` over every closure species with
+        positive activity, evaluated at ``time`` (default ``0`` uses the
+        current state; any other value decays first via :meth:`decay`).
+        Species without bundled photon rows: seeds raise
+        :class:`~pydecay.exceptions.DoseDataError` (bucket-1 nuclides such as
+        ``Sr-90`` have no photon coefficients), while closure-only progeny are
+        skipped - their photons are already attributed to the parent row where
+        Risoe did so (e.g. ``137Ba m`` in the ``Cs-137`` row) or fall outside
+        the bundled core-40 scope.
+
+        Args:
+            r: Distance to the point source. Plain numbers are metres;
+                strings and pint Quantities are parsed to metres.
+            quantity: ``"kerma"`` (Gy/h) or ``"ambient"`` (Sv/h).
+            time: Optional decay applied before summing (see above).
+
+        Returns:
+            A plain float when ``r`` is plain, or a pint Quantity mirroring
+            ``r``'s kind.
+
+        Raises:
+            ValueError: If ``quantity`` is not ``"kerma"`` or ``"ambient"``.
+            DoseDataError: If a positive-activity seed has no bundled row.
+        """
+        if quantity not in ("kerma", "ambient"):
+            raise ValueError(f"quantity must be 'kerma' or 'ambient', got {quantity!r}")
+        state = self if time == 0.0 else self.decay(time)
+        r_m = to_float(r, "meter")
+        seeds = set(state._seeds)
+        total = 0.0
+        for name, raw_a in state.activities().items():
+            a = to_float(raw_a, "becquerel")
+            if a <= 0.0:
+                continue
+            try:
+                total += dose_rate(a, name, r_m, quantity=quantity)
+            except DoseDataError:
+                if name in seeds:
+                    raise
+        unit = "gray/hour" if quantity == "kerma" else "sievert/hour"
+        return mirror_quantity(total, r, unit)
 
     def __repr__(self) -> str:
         """Show seeds and unit label only (not the full closure)."""

@@ -27,6 +27,7 @@ from pydecay import (
     remaining_fraction,
     to_seconds,
 )
+from pydecay.api import dose_rate as api_point_dose_rate
 from pydecay.units import AVOGADRO_PER_MOL, CI_IN_BQ, ureg
 
 
@@ -304,3 +305,18 @@ def test_decay_ode_residual_rejects_bad_inputs():
         decay_ode_residual(1.0, 0.0)
     with pytest.raises(PyDecayError):
         decay_ode_residual(1.0, 10.0, dn_dt_value=math.nan)
+
+
+
+def test_api_dose_rate_mirrors_r_kind():
+    plain = api_point_dose_rate(1e6, "Co-60", 1.0)
+    assert isinstance(plain, float)
+    q = api_point_dose_rate(1e6, "Co-60", 1.0 * ureg.meter)
+    assert hasattr(q, "units")
+    assert q.to("gray/hour").magnitude == pytest.approx(plain, rel=1e-12)
+
+
+def test_api_dose_rate_string_distance_and_ambient_unit():
+    got = api_point_dose_rate(1e6, "Co-60", "1 m", quantity="ambient")
+    kerma = api_point_dose_rate(1e6, "Co-60", "1 m")
+    assert got > kerma > 0

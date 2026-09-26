@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydecay import decay
+from pydecay import decay, dose
 from pydecay.exceptions import UnitError
 from pydecay.units import mirror_quantity, to_float, to_half_life_seconds, to_seconds
 
@@ -88,3 +88,39 @@ def decay_ode_residual(
     n = _canonical_n0(N)
     rate = None if dn_dt_value is None else to_float(dn_dt_value, "atom/second")
     return decay.ode_residual(n, lam, rate)
+
+
+def dose_rate(
+    activity_Bq: float | Any,
+    nuclide: str,
+    r: float | str | Any = 1.0,
+    *,
+    quantity: str = "kerma",
+    gamma_R_cm2_mCi_h: float | None = None,
+    attenuate_in_air: bool = False,
+) -> float | Any:
+    """Point-source dose rate; parses ``r`` and mirrors its kind.
+
+    Args:
+        activity_Bq: Activity in becquerel (plain or pint Quantity).
+        nuclide: Nuclide name looked up in the curated bundle.
+        r: Distance in metres; plain numbers, strings, or pint Quantities.
+        quantity: ``"kerma"`` (Gy/h) or ``"ambient"`` (Sv/h).
+        gamma_R_cm2_mCi_h: Explicit R.cm2.mCi-1.h-1 override (bypasses table).
+        attenuate_in_air: Apply the ``exp(-mu_air * r)`` refinement.
+
+    Returns:
+        Plain float when ``r`` is plain, or a pint Quantity mirroring ``r``.
+    """
+    a = to_float(activity_Bq, "becquerel")
+    r_m = to_float(r, "meter")
+    value = dose.dose_rate(
+        a,
+        nuclide,
+        r_m,
+        quantity=quantity,
+        gamma_R_cm2_mCi_h=gamma_R_cm2_mCi_h,
+        attenuate_in_air=attenuate_in_air,
+    )
+    unit = "gray/hour" if quantity == "kerma" else "sievert/hour"
+    return mirror_quantity(value, r, unit)
