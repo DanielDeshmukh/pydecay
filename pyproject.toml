@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "pydecay"
 dynamic = ["version"]
-description = "Radioactive decay mathematics: analytical decay, Bateman chains with branching, and activity unit conversions"
+description = "Radioactive decay mathematics: analytical decay, Bateman chains, dose rates, shielding, and activity unit conversions"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
@@ -16,7 +16,7 @@ authors = [
   { name = "Daniel Deshmukh" },
   { email = "deshmukhdaniel2005@gmail.com" },
 ]
-keywords = ["radioactive", "decay", "bateman", "half-life", "activity", "nuclear", "radioactivity"]
+keywords = ["radioactive", "decay", "bateman", "half-life", "activity", "nuclear", "radioactivity", "dose", "shielding"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Science/Research",

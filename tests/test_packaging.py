@@ -103,6 +103,20 @@ def test_wheel_excludes_fetch_scripts_and_keeps_icrp_assets(tmp_path):
     assert not any("_fetch_iaea.py" in n for n in names)
 
 
+def test_wheel_ships_dose_and_nist_assets_and_excludes_scripts(tmp_path):
+    """Wheel ships dose/shielding data and omits curation/fetch helpers."""
+    import zipfile
+
+    wheel = _build_wheel(str(tmp_path))
+    with zipfile.ZipFile(wheel) as zf:
+        names = zf.namelist()
+    assert any(n.endswith("pydecay/data/dose_coefficients.json") for n in names)
+    assert any(n.endswith("pydecay/data/nist_mu.json.gz") for n in names)
+    assert any(n.endswith("pydecay/data/LICENSE.nist.txt") for n in names)
+    assert not any("_curate_dose.py" in n for n in names)
+    assert not any("_fetch_nist.py" in n for n in names)
+
+
 def test_wheel_size_budget(tmp_path):
     """Hard fail if the wheel exceeds the 15 MB budget."""
     wheel = _build_wheel(str(tmp_path))

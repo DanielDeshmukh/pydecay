@@ -91,7 +91,7 @@ def test_public_exports():
 
     for name in pydecay.__all__:
         assert hasattr(pydecay, name)
-    assert __version__ == "0.5.1"
+    assert __version__ == "0.6.0"
     assert issubclass(NuclideNotFoundError, PyDecayError)
     assert issubclass(ChainDefinitionError, PyDecayError)
     assert "Inventory" in pydecay.__all__
@@ -320,3 +320,45 @@ def test_api_dose_rate_string_distance_and_ambient_unit():
     got = api_point_dose_rate(1e6, "Co-60", "1 m", quantity="ambient")
     kerma = api_point_dose_rate(1e6, "Co-60", "1 m")
     assert got > kerma > 0
+
+
+def test_060_new_exports_importable_and_in_all():
+    import pydecay
+
+    expected = {
+        "DoseDataError",
+        "MaterialError",
+        "air_kerma_rate",
+        "dose_rate",
+        "exposure_rate",
+        "hvl",
+        "hvl_slab",
+        "mu_from_material",
+        "material",
+        "available_materials",
+        "multilayer_transmit",
+        "transmit",
+        "transmit_slab",
+        "tvl",
+        "tvl_slab",
+    }
+    assert expected <= set(pydecay.__all__)
+    for name in expected:
+        assert hasattr(pydecay, name), name
+
+
+def test_060_dose_rate_parity_float_vs_pint():
+    import pydecay
+
+    plain = pydecay.dose_rate(1e6, "Co-60", 1.0)
+    q = pydecay.dose_rate(1e6, "Co-60", 1.0 * ureg.meter)
+    assert isinstance(plain, float)
+    assert q.to("gray/hour").magnitude == pytest.approx(plain, rel=1e-12)
+
+
+def test_060_transmit_slab_matches_manual_beer_lambert():
+    import pydecay
+
+    mu = pydecay.mu_from_material("lead", 1.25)
+    expected = 1.0 * math.exp(-mu * 0.01)
+    assert pydecay.transmit_slab(1.0, "lead", 0.01, 1.25) == pytest.approx(expected, rel=1e-12)
