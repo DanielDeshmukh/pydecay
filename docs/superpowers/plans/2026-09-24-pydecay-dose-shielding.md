@@ -1,6 +1,6 @@
 # pydecay v0.6 — Dose & Shielding Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add dose and shielding to pydecay — activity → air-kerma/exposure rate at distance (point source, photons), plus narrow-beam shielding (μ, HVL/TVL, multi-layer transmit) using bundled NIST attenuation data and a curated coefficient table — validated against published handbook values.
 
@@ -91,7 +91,7 @@ Do **not** modify `landingpage/**` in Tasks 0–8.
 - Consumes: existing repo at 0.5.1, all gates green.
 - Produces: editable install in themis venv from **source**, green baseline.
 
-- [ ] **Step 1: Confirm editable install from this repo**
+- [x] **Step 1: Confirm editable install from this repo**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pip install -e ".[test,dev]"
@@ -100,7 +100,7 @@ Do **not** modify `landingpage/**` in Tasks 0–8.
 
 Expected: `0.5.1` and path under `D:\Vs Code\VS code\pydecay\src\pydecay`. If it still resolves to `site-packages`, the editable install did not take — re-run and verify.
 
-- [ ] **Step 2: Full green baseline**
+- [x] **Step 2: Full green baseline**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest -q
@@ -110,7 +110,7 @@ Expected: `0.5.1` and path under `D:\Vs Code\VS code\pydecay\src\pydecay`. If it
 
 Expected: all pass; coverage ≥ 90 on the pytest run (add `--cov` if the default addopts do not show it). Fix baseline failures in a separate `fix:` commit before proceeding if any fail.
 
-- [ ] **Step 3: No commit** unless Step 2 required fixes.
+- [x] **Step 3: No commit** unless Step 2 required fixes.
 
 ---
 
@@ -144,7 +144,7 @@ Expected: all pass; coverage ≥ 90 on the pytest run (add `--cov` if the defaul
 - Materials required in v0.6: `lead`, `iron`, `water`, `concrete`, `aluminum`, `air`, `polyethylene`.
 - Energies: log-spaced ≥ 40 points covering **0.01–20 MeV**, strictly increasing.
 
-- [ ] **Step 1: Write failing schema/parser tests**
+- [x] **Step 1: Write failing schema/parser tests**
 
 `tests/fixtures/dose/nist_mu_slice.json`: hand-build a minimal object matching the schema above with 5 fake E/μ rows for `lead` (values clearly synthetic — parser tests only, never used as physics truth).
 
@@ -188,7 +188,7 @@ def test_bundled_gzip_roundtrip():
     assert data["source"].startswith("NIST")
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest tests/test_fetch_nist.py -v
@@ -196,13 +196,13 @@ def test_bundled_gzip_roundtrip():
 
 Expected: FAIL — module `pydecay.data._fetch_nist` missing; later asserts fail until bundle exists.
 
-- [ ] **Step 3: Research + obtain XCOM data (manual acceptable)**
+- [x] **Step 3: Research + obtain XCOM data (manual acceptable)**
 
 1. Open `https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html`.
 2. Prefer scripted POST of the multi-material form (materials + energies 0.01–20 MeV, 40+ log points). If the form blocks scripts, download manually and drop the raw response/text under `data/raw_nist/` (create `data/raw_nist/.gitkeep`; gitignore `data/raw_nist/*` except `.gitkeep`).
 3. Record SHA-256 of the raw response in `_fetch_nist.py` as `RAW_SHA256`.
 
-- [ ] **Step 4: Implement `_fetch_nist.py`**
+- [x] **Step 4: Implement `_fetch_nist.py`**
 
 - `parse_xcom_text(text) -> list[tuple[float, float]]` — pure, tested in Step 1.
 - `validate_payload(payload)` — requires all `REQUIRED_MATERIALS`, finite positive μ/ρ, strictly increasing E, E span ⊇ [0.01, 20] MeV.
@@ -210,11 +210,11 @@ Expected: FAIL — module `pydecay.data._fetch_nist` missing; later asserts fail
 - CLI: `python -m pydecay.data._fetch_nist --raw data/raw_nist/xcom.txt` (network fetch path if raw absent).
 - Wheel exclude: add to `pyproject.toml` hatch `exclude` and `[tool.coverage.run] omit`.
 
-- [ ] **Step 5: Ship `LICENSE.nist.txt`**
+- [x] **Step 5: Ship `LICENSE.nist.txt`**
 
 Copy the NIST/XCOM public-domain/copyright notice verbatim from the XCOM page footer or NIST disclaimers page. Commit it.
 
-- [ ] **Step 6: Build bundle + green parser tests**
+- [x] **Step 6: Build bundle + green parser tests**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pydecay.data._fetch_nist --raw data\raw_nist\xcom.txt
@@ -223,7 +223,7 @@ Copy the NIST/XCOM public-domain/copyright notice verbatim from the XCOM page fo
 
 Expected: PASS including `test_bundled_gzip_roundtrip`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add src/pydecay/data/_fetch_nist.py src/pydecay/data/nist_mu.json.gz src/pydecay/data/LICENSE.nist.txt tests/test_fetch_nist.py tests/fixtures/dose/nist_mu_slice.json pyproject.toml data/raw_nist/.gitkeep .gitignore
@@ -255,7 +255,7 @@ def available_materials() -> tuple[str, ...]: ...
 - Errors: unknown name → `MaterialError`; E outside [0.01, 20] → `MaterialError` (no silent clamp).
 - Interpolation: linear in (log E, log μ/ρ); exact node hits return table values.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 """Material registry and mu(E) interpolation tests."""
@@ -307,7 +307,7 @@ def test_mu_units_are_per_meter():
     assert water.mu(1.0) == pytest.approx(7.07, rel=0.03)
 ```
 
-- [ ] **Step 2: Run to verify FAIL**
+- [x] **Step 2: Run to verify FAIL**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest tests/test_materials.py -v
@@ -315,14 +315,14 @@ def test_mu_units_are_per_meter():
 
 Expected: `ModuleNotFoundError: No module named 'pydecay.materials'`.
 
-- [ ] **Step 3: Implement `materials.py`**
+- [x] **Step 3: Implement `materials.py`**
 
 - Lazy-load NIST payload once (module-level cache, mirroring `data/__init__.py` `lru_cache` pattern — call `_dose_data.load_nist_mu()` which Task 4 stubs; **if Task 4 not done yet, implement `_dose_data.load_nist_mu` inline in this task as a minimal loader and keep it** — Tasks 2 and 4 may share the loader; prefer creating `_dose_data.py` here with just `load_nist_mu()` and extending it in Task 4).
 - Densities come from the payload itself (written by the fetcher).
 - Log-log `numpy.interp` on `log(E)`; raise `MaterialError` on OOR / unknown.
 - Docstring: cite NIST XCOM + density sources.
 
-- [ ] **Step 4: Tests green + gates**
+- [x] **Step 4: Tests green + gates**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest tests/test_materials.py -q
@@ -332,7 +332,7 @@ Expected: `ModuleNotFoundError: No module named 'pydecay.materials'`.
 
 Expected: pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add src/pydecay/materials.py src/pydecay/_dose_data.py tests/test_materials.py
@@ -365,7 +365,7 @@ def multilayer_transmit(I0: float, layers: Sequence[tuple[str, float]], energy_M
 
 - Errors: `mu <= 0` or non-finite → `ValueError`; `x < 0` → `ValueError`; `buildup is not None` → `NotImplementedError("buildup factors ship in v0.7")`; unknown material → `MaterialError`.
 
-- [ ] **Step 1: Write failing tests**
+- [x] **Step 1: Write failing tests**
 
 ```python
 """Narrow-beam shielding identities and multi-layer composition."""
@@ -438,17 +438,17 @@ def test_unknown_material_propagates():
         transmit_slab(1.0, "unobtanium", 0.1, 1.0)
 ```
 
-- [ ] **Step 2: Run to verify FAIL**
+- [x] **Step 2: Run to verify FAIL**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest tests/test_shielding.py -v
 ```
 
-- [ ] **Step 3: Implement `shielding.py`**
+- [x] **Step 3: Implement `shielding.py`**
 
 Pure floats; docstrings cite Beer-Lambert and Google style (ruff `D` rules).
 
-- [ ] **Step 4: Tests green + gates**
+- [x] **Step 4: Tests green + gates**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest tests/test_shielding.py -q
@@ -456,7 +456,7 @@ Pure floats; docstrings cite Beer-Lambert and Google style (ruff `D` rules).
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m mypy src
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add src/pydecay/shielding.py tests/test_shielding.py
@@ -493,7 +493,7 @@ git -c core.hooksPath=/dev/null commit -m "feat: narrow-beam shielding with HVL/
 
 - Loader: `_dose_data.load_dose_coefficients() -> dict` (cached); missing nuclide lookups raise `DoseDataError` at the dose API layer (Task 5), not here.
 
-- [ ] **Step 1: Research + lock golden Γ values**
+- [x] **Step 1: Research + lock golden Γ values**
 
 Assemble core-40 table (spec §10 resolution 1). For each row record `source`, `table`, `page`. Minimum golden subset that **must** be in fixtures for tests (widely published values — verify against primary source during curation, adjust only if primary disagrees, and note the deviation in `source`):
 
@@ -508,7 +508,7 @@ Assemble core-40 table (spec §10 resolution 1). For each row record `source`, `
 
 Record actual locked values + citations in `tests/fixtures/dose/dose_coefficients_slice.json`.
 
-- [ ] **Step 2: Write failing loader tests**
+- [x] **Step 2: Write failing loader tests**
 
 ```python
 """dose_coefficients.json schema and loader tests."""
@@ -543,15 +543,15 @@ def test_h_star_table_present_and_monotone():
     assert ks["factor"][0] > 0
 ```
 
-- [ ] **Step 3: Run to verify FAIL**
+- [x] **Step 3: Run to verify FAIL**
 
-- [ ] **Step 4: Implement `_curate_dose.py` + extend `_dose_data.py`**
+- [x] **Step 4: Implement `_curate_dose.py` + extend `_dose_data.py`**
 
 - `_curate_dose.py`: builds the JSON from an embedded source table (researched values + citations); CLI writes `dose_coefficients.json`.
 - `_dose_data.load_dose_coefficients()`: `resources.files("pydecay.data").joinpath("dose_coefficients.json")`, `json.loads`, `lru_cache` — same pattern as `load_catalog`.
 - hatch exclude + coverage omit for `_curate_dose.py`.
 
-- [ ] **Step 5: Build bundle + tests green + gates**
+- [x] **Step 5: Build bundle + tests green + gates**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pydecay.data._curate_dose
@@ -560,7 +560,7 @@ def test_h_star_table_present_and_monotone():
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m mypy src
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add src/pydecay/data/_curate_dose.py src/pydecay/data/dose_coefficients.json src/pydecay/_dose_data.py tests/test_dose_data.py tests/fixtures/dose/dose_coefficients_slice.json pyproject.toml
@@ -607,7 +607,7 @@ def h_star_rate(...) -> float: ...  # ambient (Sv/h) via quantity="ambient" path
   - Tabulated Γ is referenced at **1 cm** (classic convention: R·cm²·mCi⁻¹·h⁻¹ implies rate at 1 cm for that activity unit). Implementation: `rate(r) = Γ_scaled * (1/r_cm^2)` where `Γ_scaled` converts Γ × A(Bq) → R/h at 1 cm. **Lock the convention in Step 1 tests with a known published example** (e.g. 1 mCi Co-60 at 1 cm ≈ 1.32 R/h; at 100 cm ≈ 1.32e-4 R/h) — if the published example disagrees with 1/r² scaling from 1 cm, document the actual convention from the source.
   - `"ambient"`: `dose_rate * h_star_over_ka` interpolated at 1.25 MeV (or gamma-weighted if source publishes effective E — use simple 1.25 MeV default for Co-60-like, else max-γ energy of nuclide; document choice).
 
-- [ ] **Step 1: Write golden fixture + failing tests**
+- [x] **Step 1: Write golden fixture + failing tests**
 
 `tests/fixtures/dose/golden_dose_rates.json`:
 
@@ -704,14 +704,14 @@ def test_r_to_gy_constant():
 
 (`gamma_lookup` = thin helper reading `dose_coefficients.json` in the test.)
 
-- [ ] **Step 2: Run to verify FAIL**
+- [x] **Step 2: Run to verify FAIL**
 
-- [ ] **Step 3: Implement `dose.py`**
+- [x] **Step 3: Implement `dose.py`**
 
 - Resolve Γ convention exactly as Step 1 golden cases document.
 - `DoseDataError` does not exist yet — create it in `exceptions.py` **in this task** (Task 6 also touches exceptions; do the class add here if tests need it, Task 6 reuses).
 
-- [ ] **Step 4: Tests green + gates**
+- [x] **Step 4: Tests green + gates**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest tests/test_dose.py -q
@@ -719,7 +719,7 @@ def test_r_to_gy_constant():
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m mypy src
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add src/pydecay/dose.py src/pydecay/exceptions.py tests/test_dose.py tests/fixtures/dose/golden_dose_rates.json
@@ -743,7 +743,7 @@ git -c core.hooksPath=/dev/null commit -m "feat: point-source exposure and air-k
   - Uses pint edge: parse `r` via `to_seconds`-style `to_float(r, "meter")`; mirror result kind off `r`.
 - `MaterialError` added to hierarchy.
 
-- [ ] **Step 1: Write failing inventory tests**
+- [x] **Step 1: Write failing inventory tests**
 
 ```python
 """Inventory dose-rate composition tests."""
@@ -771,16 +771,16 @@ def test_inventory_dose_rate_mirrors_pint_input():
 
 (Adapt `Inventory` constructor call to the real API after reading `inventory.py`.)
 
-- [ ] **Step 2: Run to verify FAIL**
+- [x] **Step 2: Run to verify FAIL**
 
-- [ ] **Step 3: Implement method + exceptions + pint edge**
+- [x] **Step 3: Implement method + exceptions + pint edge**
 
 - Prefer small pure helper in `dose.py` that takes `(activity_Bq, nuclide, r_m, ...)`; `Inventory.dose_rate` converts units and sums.
 - If `time=` kwarg is supported: call `self.at(t)` (or equivalent) first, then sum activities.
 
-- [ ] **Step 4: Tests green + gates**
+- [x] **Step 4: Tests green + gates**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add src/pydecay/inventory.py src/pydecay/exceptions.py src/pydecay/api.py tests/test_inventory.py
@@ -803,7 +803,7 @@ git -c core.hooksPath=/dev/null commit -m "feat: Inventory.dose_rate composing p
 - Consumes: public APIs from Tasks 3–6.
 - Produces: `mkdocs build --strict` green; every public function has an API entry.
 
-- [ ] **Step 1: Write `docs/dose.md`**
+- [x] **Step 1: Write `docs/dose.md`**
 
 Sections: goal · Γ convention + citations · `dose_rate` / `exposure_rate` / `air_kerma_rate` examples · `quantity="ambient"` · `Inventory.dose_rate` · limitations (point source, narrow-beam, no buildup, not a regulatory tool) · provenance table for coefficients.
 
@@ -814,7 +814,7 @@ from pydecay import dose_rate
 dose_rate(1e6, "Co-60", r_m=1.0)  # Gy/h from 1 MBq Co-60 at 1 m
 ```
 
-- [ ] **Step 2: Write `docs/shielding.md`**
+- [x] **Step 2: Write `docs/shielding.md`**
 
 Sections: Beer-Lambert · HVL/TVL definitions · material table (density + μ at 1.0 / 1.25 MeV) · multi-layer example · buildup reserved-for-v0.7 note · NIST citation.
 
@@ -827,7 +827,7 @@ hvl_slab("lead", 1.25)   # meters
 transmit_slab(1.0, "lead", 0.01, 1.25)
 ```
 
-- [ ] **Step 3: Wire nav + api + user-guide + README + CHANGELOG**
+- [x] **Step 3: Wire nav + api + user-guide + README + CHANGELOG**
 
 - `mkdocs.yml` nav: add `dose.md` and `shielding.md` after existing entries.
 - `docs/api.md`: sections for dose/shielding/materials exports.
@@ -847,7 +847,7 @@ transmit_slab(1.0, "lead", 0.01, 1.25)
 - New exceptions: `DoseDataError`, `MaterialError`.
 ```
 
-- [ ] **Step 4: Docs build gate**
+- [x] **Step 4: Docs build gate**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m mkdocs build --strict
@@ -855,7 +855,7 @@ transmit_slab(1.0, "lead", 0.01, 1.25)
 
 Expected: no warnings-as-errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add docs/dose.md docs/shielding.md docs/api.md docs/user-guide.md docs/index.md mkdocs.yml README.md CHANGELOG.md
@@ -885,17 +885,17 @@ git -c core.hooksPath=/dev/null commit -m "docs: dose and shielding guides with 
 
 - Existing 13+ names unchanged.
 
-- [ ] **Step 1: Update smoke/api/packaging tests**
+- [x] **Step 1: Update smoke/api/packaging tests**
 
 - `test_smoke.py`: assert `__version__ == "0.6.0"`.
 - `test_api.py`: assert new names importable and in `__all__`; parity spot-check (plain float vs pint) for `dose_rate` / `transmit_slab`.
 - `test_packaging.py`: assert `data/nist_mu.json.gz` and `data/dose_coefficients.json` and `LICENSE.nist.txt` are in the wheel; assert `_fetch_nist.py` / `_curate_dose.py` are **not** in the wheel.
 
-- [ ] **Step 2: Update `__init__.py`**
+- [x] **Step 2: Update `__init__.py`**
 
 - Version bump + imports + `__all__` list (keep sorted per existing style).
 
-- [ ] **Step 3: Run tests to verify FAIL first, then green**
+- [x] **Step 3: Run tests to verify FAIL first, then green**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest -q
@@ -903,7 +903,7 @@ git -c core.hooksPath=/dev/null commit -m "docs: dose and shielding guides with 
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m mypy src
 ```
 
-- [ ] **Step 4: Coverage + build gates**
+- [x] **Step 4: Coverage + build gates**
 
 ```powershell
 & "D:\Vs Code\themis\venv\Scripts\python.exe" -m pytest --cov=pydecay --cov-report=term-missing --cov-fail-under=90 -q
@@ -912,7 +912,7 @@ git -c core.hooksPath=/dev/null commit -m "docs: dose and shielding guides with 
 
 Expected: coverage ≥ 90; `dist/pydecay-0.6.0-*` artifacts; wheel size sane (add data, still well under 15 MB budget).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add src/pydecay/__init__.py tests/test_smoke.py tests/test_api.py tests/test_packaging.py pyproject.toml
@@ -930,9 +930,9 @@ git -c core.hooksPath=/dev/null commit -m "release: 0.6.0 — dose and shielding
 - Consumes: everything above.
 - Produces: a short summary (goal, API list, example snippets, 4–5 screenshot suggestions, copy-paste changelog) the user can hand to a later landing-page task. **Does not modify `landingpage/**`.**
 
-- [ ] **Step 1: Write the summary document** (bullet-style, 60–100 lines).
+- [x] **Step 1: Write the summary document** (bullet-style, 60–100 lines).
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git -c core.hooksPath=/dev/null add docs/superpowers/plans/2026-09-24-pydecay-dose-shielding-summary.md
@@ -943,13 +943,13 @@ git -c core.hooksPath=/dev/null commit -m "docs: dose/shielding landing-page han
 
 ## Definition of Done
 
-- [ ] All tasks 0–9 checkboxes complete.
-- [ ] Full gates green: pytest, ruff, mypy strict, coverage ≥ 90, `mkdocs build --strict`, `python -m build`.
-- [ ] Wheel contains `nist_mu.json.gz`, `dose_coefficients.json`, `LICENSE.nist.txt`; excludes both `_fetch_nist.py` and `_curate_dose.py`.
-- [ ] `pydecay.__version__ == "0.6.0"`; new exports importable.
-- [ ] Golden dose cases pass against cited sources; shielding identities exact.
-- [ ] No `landingpage/**` changes in this plan.
-- [ ] CHANGELOG `0.6.0` entry present.
+- [x] All tasks 0–9 checkboxes complete.
+- [x] Full gates green: pytest, ruff, mypy strict, coverage ≥ 90, `mkdocs build --strict`, `python -m build`.
+- [x] Wheel contains `nist_mu.json.gz`, `dose_coefficients.json`, `LICENSE.nist.txt`; excludes both `_fetch_nist.py` and `_curate_dose.py`.
+- [x] `pydecay.__version__ == "0.6.0"`; new exports importable.
+- [x] Golden dose cases pass against cited sources; shielding identities exact.
+- [x] No `landingpage/**` changes in this plan.
+- [x] CHANGELOG `0.6.0` entry present.
 
 ## Explicit non-goals (restate)
 
