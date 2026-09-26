@@ -1,0 +1,349 @@
+{
+  "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+  "fetched": "2026-09-26",
+  "description": "Point-source exposure-rate constants for the pydecay core-40 nuclides. Coefficients are nuclear-photon emission values; X-rays and photons below 30 keV are omitted (Risoe-M-2322 sec. 1). gamma_R_cm2_mCi_h stores true R.cm2.mCi-1.h-1 (= 10 x the Risoe R.m2/h/Ci value); gamma_R_m2_h_per_Ci keeps the verbatim source value for provenance.",
+  "units": {
+    "gamma_R_cm2_mCi_h": "R.cm2.mCi-1.h-1",
+    "gamma_R_m2_h_per_Ci": "R.m2.h-1.Ci-1",
+    "h_star_over_ka": "Sv.Gy-1"
+  },
+  "rows": {
+    "Am-241": {
+      "gamma_R_cm2_mCi_h": 0.121,
+      "gamma_R_m2_h_per_Ci": 0.0121,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 418 (PDF 422)",
+      "evidence": "text layer, n=2"
+    },
+    "At-211": {
+      "gamma_R_cm2_mCi_h": 0.01,
+      "gamma_R_m2_h_per_Ci": 0.001,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 395 (PDF 399)",
+      "evidence": "text layer, n=1"
+    },
+    "Ba-133": {
+      "gamma_R_cm2_mCi_h": 2.024,
+      "gamma_R_m2_h_per_Ci": 0.2024,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 191 (PDF 195)",
+      "evidence": "text layer, n=9"
+    },
+    "Bi-214": {
+      "gamma_R_cm2_mCi_h": 7.46,
+      "gamma_R_m2_h_per_Ci": 0.746,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 396 (PDF 400)",
+      "evidence": "text layer, n=51"
+    },
+    "Co-57": {
+      "gamma_R_cm2_mCi_h": 0.548,
+      "gamma_R_m2_h_per_Ci": 0.0548,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 33 (PDF 37)",
+      "evidence": "text layer, n=3"
+    },
+    "Co-60": {
+      "gamma_R_cm2_mCi_h": 12.987,
+      "gamma_R_m2_h_per_Ci": 1.2987,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 35 (PDF 39)",
+      "evidence": "image, n=2 lines"
+    },
+    "Cs-137": {
+      "gamma_R_cm2_mCi_h": 3.224,
+      "gamma_R_m2_h_per_Ci": 0.3224,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 199 (PDF 203)",
+      "evidence": "text layer, n=1 (137Cs+137Ba m row)"
+    },
+    "Eu-152": {
+      "gamma_R_cm2_mCi_h": 5.983,
+      "gamma_R_m2_h_per_Ci": 0.5983,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 249-250 (PDF 253-254)",
+      "evidence": "image, n=42"
+    },
+    "F-18": {
+      "gamma_R_cm2_mCi_h": 5.895,
+      "gamma_R_m2_h_per_Ci": 0.5895,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 21 (PDF 25)",
+      "evidence": "text layer, n=1"
+    },
+    "Ga-68": {
+      "gamma_R_cm2_mCi_h": 5.455,
+      "gamma_R_m2_h_per_Ci": 0.5455,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 43 (PDF 47)",
+      "evidence": "text layer, n=3"
+    },
+    "Ge-68": {
+      "gamma_R_cm2_mCi_h": 5.466,
+      "gamma_R_m2_h_per_Ci": 0.5466,
+      "source": "ICRP-107 Annex A photon emission probabilities (E >= 30 keV) via the validated Risoe-M-2322 formula (K=19.54, Risoe Table 1 mu_en/rho); mirrors the Risoe sec. 1 energy cut",
+      "table": "ICRP-107 Annex A",
+      "page": "-",
+      "evidence": "chain total 0.546590; Risoe 68 Ga row 0.5455 cross-check (+0.20%)"
+    },
+    "I-125": {
+      "gamma_R_cm2_mCi_h": 0.039,
+      "gamma_R_m2_h_per_Ci": 0.0039,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 167 (PDF 171)",
+      "evidence": "text layer, n=1 (35.492 keV)"
+    },
+    "I-131": {
+      "gamma_R_cm2_mCi_h": 2.158,
+      "gamma_R_m2_h_per_Ci": 0.2158,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 182 (PDF 186)",
+      "evidence": "text layer, n=9"
+    },
+    "In-111": {
+      "gamma_R_cm2_mCi_h": 2.039,
+      "gamma_R_m2_h_per_Ci": 0.2039,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 146 (PDF 150)",
+      "evidence": "text layer, n=2"
+    },
+    "Ir-192": {
+      "gamma_R_cm2_mCi_h": 4.581,
+      "gamma_R_m2_h_per_Ci": 0.4581,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 347 (PDF 351)",
+      "evidence": "text layer, n=17"
+    },
+    "K-40": {
+      "gamma_R_cm2_mCi_h": 0.779,
+      "gamma_R_m2_h_per_Ci": 0.0779,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 25 (PDF 29)",
+      "evidence": "text layer, n=1"
+    },
+    "Kr-85": {
+      "gamma_R_cm2_mCi_h": 0.013,
+      "gamma_R_m2_h_per_Ci": 0.0013,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 78 (PDF 82)",
+      "evidence": "text layer, n=1"
+    },
+    "Lu-177": {
+      "gamma_R_cm2_mCi_h": 0.16,
+      "gamma_R_m2_h_per_Ci": 0.016,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 313 (PDF 317)",
+      "evidence": "text layer, n=5"
+    },
+    "Mn-54": {
+      "gamma_R_cm2_mCi_h": 4.681,
+      "gamma_R_m2_h_per_Ci": 0.4681,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 32 (PDF 36)",
+      "evidence": "text layer, n=1"
+    },
+    "Na-22": {
+      "gamma_R_cm2_mCi_h": 11.882,
+      "gamma_R_m2_h_per_Ci": 1.1882,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 22 (PDF 26)",
+      "evidence": "text layer, n=2"
+    },
+    "Pb-210": {
+      "gamma_R_cm2_mCi_h": 0.016,
+      "gamma_R_m2_h_per_Ci": 0.0016,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 394 (PDF 398)",
+      "evidence": "image, n=1 (OCR corrected 46.503)"
+    },
+    "Pb-214": {
+      "gamma_R_cm2_mCi_h": 1.294,
+      "gamma_R_m2_h_per_Ci": 0.1294,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 396 (PDF 400)",
+      "evidence": "text layer, n=13"
+    },
+    "Pu-239": {
+      "gamma_R_cm2_mCi_h": 0.00037,
+      "gamma_R_m2_h_per_Ci": 3.7e-05,
+      "source": "ICRP-107 Annex A photon emission probabilities (E >= 30 keV) via the validated Risoe-M-2322 formula (K=19.54, Risoe Table 1 mu_en/rho); mirrors the Risoe sec. 1 energy cut",
+      "table": "ICRP-107 Annex A",
+      "page": "-",
+      "evidence": "chain total >=30 keV; no Risoe row exists"
+    },
+    "Ra-226": {
+      "gamma_R_cm2_mCi_h": 8.782,
+      "gamma_R_m2_h_per_Ci": 0.8782,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 399-400 (PDF 403-404)",
+      "evidence": "image, n=64 (+da row; sum-checked vs Bi-214+Pb-214+bare)"
+    },
+    "Rb-82": {
+      "gamma_R_cm2_mCi_h": 6.247,
+      "gamma_R_m2_h_per_Ci": 0.6247,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 71 (PDF 75)",
+      "evidence": "text layer, n=4"
+    },
+    "Se-75": {
+      "gamma_R_cm2_mCi_h": 2.056,
+      "gamma_R_m2_h_per_Ci": 0.2056,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 57 (PDF 61)",
+      "evidence": "text layer, n=9"
+    },
+    "Tc-99m": {
+      "gamma_R_cm2_mCi_h": 0.59,
+      "gamma_R_m2_h_per_Ci": 0.059,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 123 (PDF 127)",
+      "evidence": "image, n=1 (140.466 keV)"
+    },
+    "Th-232": {
+      "gamma_R_cm2_mCi_h": 0.001,
+      "gamma_R_m2_h_per_Ci": 0.0001,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 407 (PDF 411)",
+      "evidence": "text layer, n=1 (printed 4 dp)"
+    },
+    "Tl-201": {
+      "gamma_R_cm2_mCi_h": 0.105,
+      "gamma_R_m2_h_per_Ci": 0.0105,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 369 (PDF 373)",
+      "evidence": "text layer, n=5 (ground state)"
+    },
+    "U-235": {
+      "gamma_R_cm2_mCi_h": 0.802,
+      "gamma_R_m2_h_per_Ci": 0.0802,
+      "source": "ICRP-107 Annex A photon emission probabilities (E >= 30 keV) via the validated Risoe-M-2322 formula (K=19.54, Risoe Table 1 mu_en/rho); mirrors the Risoe sec. 1 energy cut",
+      "table": "ICRP-107 Annex A",
+      "page": "-",
+      "evidence": "chain total 0.080174; no Risoe 235 U row; 235 Pa row self-check -0.29%"
+    },
+    "U-238": {
+      "gamma_R_cm2_mCi_h": 0.085,
+      "gamma_R_m2_h_per_Ci": 0.0085,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 415 (PDF 419)",
+      "evidence": "image, n=1 (49.550 keV)"
+    },
+    "Xe-133": {
+      "gamma_R_cm2_mCi_h": 0.136,
+      "gamma_R_m2_h_per_Ci": 0.0136,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 191 (PDF 195)",
+      "evidence": "text layer, n=2"
+    },
+    "Yb-175": {
+      "gamma_R_cm2_mCi_h": 0.209,
+      "gamma_R_m2_h_per_Ci": 0.0209,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 306 (PDF 310)",
+      "evidence": "text layer, n=5"
+    },
+    "Zn-65": {
+      "gamma_R_cm2_mCi_h": 3.105,
+      "gamma_R_m2_h_per_Ci": 0.3105,
+      "source": "Lauridsen B. (1982) Risoe-M-2322 (Risoe National Laboratory) Table 4; nuclear photons only, X-rays and <30 keV omitted (sec. 1)",
+      "table": "Risoe-M-2322 Table 4",
+      "page": "printed 39 (PDF 43)",
+      "evidence": "text layer, n=2"
+    }
+  },
+  "omitted": {
+    "C-14": "pure beta emitter, no photon rows in Risoe-M-2322 Table 4",
+    "Fe-55": "no photon emission >=30 keV (EC daughter Mn-55 X-rays excluded by Risoe sec. 1)",
+    "H-3": "pure beta emitter, no photon rows in Risoe-M-2322 Table 4",
+    "Po-210": "no photon emission >=30 keV (803 keV gamma branch absent from Risoe table)",
+    "Sr-90": "pure beta emitter (Y-90 daughter has no gamma; ground-state Y-90 omitted)",
+    "Y-90": "ground state is photon-free; the only Risoe Y-90 row is the 3.190 h isomer"
+  },
+  "h_star_over_ka": {
+    "E_MeV": [
+      0.01,
+      0.015,
+      0.02,
+      0.03,
+      0.04,
+      0.05,
+      0.06,
+      0.08,
+      0.1,
+      0.15,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.8,
+      1.0,
+      1.5,
+      2.0,
+      3.0,
+      4.0,
+      5.0,
+      6.0,
+      8.0,
+      10.0
+    ],
+    "factor": [
+      0.008,
+      0.26,
+      0.61,
+      1.1,
+      1.47,
+      1.67,
+      1.74,
+      1.72,
+      1.65,
+      1.49,
+      1.4,
+      1.31,
+      1.26,
+      1.23,
+      1.21,
+      1.19,
+      1.17,
+      1.15,
+      1.14,
+      1.13,
+      1.12,
+      1.11,
+      1.11,
+      1.11,
+      1.1
+    ],
+    "source": "ICRP Publication 74 (1996) Table A.21, H*(10)/Ka (Sv/Gy), monoenergetic photons 10 keV-10 MeV; values as reproduced in IAEA (R.V. Griffith) 'Quantities and Units for External Dose Assessment', Table III"
+  }
+}
