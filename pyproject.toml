@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/DanielDeshmukh/pydecay"
+Homepage = "https://pydecay-model-remains.vercel.app"
 Repository = "https://github.com/DanielDeshmukh/pydecay"
 Issues = "https://github.com/DanielDeshmukh/pydecay/issues"
 
