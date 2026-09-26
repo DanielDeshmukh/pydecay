@@ -35,3 +35,10 @@ class DataFormatError(PyDecayError):
 
 class MaterialError(PyDecayError):
     """Raised when a shielding material name is unknown or an energy is out of range."""
+
+
+class DoseDataError(PyDecayError):
+    """Raised when no photon dose coefficients exist for a nuclide.
+
+    Also raised when an explicit gamma override was not provided.
+    """

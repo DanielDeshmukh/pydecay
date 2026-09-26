@@ -1,0 +1,31 @@
+{
+  "cases": [
+    {
+      "id": "co60_1mCi_1cm_exposure",
+      "nuclide": "Co-60",
+      "activity_Ci": 0.001,
+      "r_cm": 1.0,
+      "expected_R_h": 12.987,
+      "rel_tol": 0.01,
+      "source": "12.987 R.cm2/mCi/h (= 10 x Risoe-M-2322 1.2987 R.m2/h/Ci) x 1 mCi at 1 cm"
+    },
+    {
+      "id": "co60_1mCi_100cm_exposure",
+      "nuclide": "Co-60",
+      "activity_Ci": 0.001,
+      "r_cm": 100.0,
+      "expected_R_h": 0.0012987,
+      "rel_tol": 0.01,
+      "source": "inverse-square from same Gamma (1/100^2)"
+    },
+    {
+      "id": "co60_1MBq_1m_kerma",
+      "nuclide": "Co-60",
+      "activity_Bq": 1e6,
+      "r_m": 1.0,
+      "expected_Gy_h": 3.07476e-7,
+      "rel_tol": 0.02,
+      "source": "exposure_rate(3.51e-5 R/h) x R_TO_GY_AIR(8.76e-3) from locked Gamma"
+    }
+  ]
+}
