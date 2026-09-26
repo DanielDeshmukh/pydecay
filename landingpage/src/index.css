@@ -719,6 +719,116 @@ section[id],
   background: #1a2a36;
   color: var(--accent);
 }
+.playground-mode-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 560px;
+  margin-bottom: 18px;
+}
+.playground-mode-tabs button {
+  height: 44px;
+  border: 1px solid #575b5f;
+  background: #252829;
+  color: #c5c8cb;
+  font: 500 11px var(--mono);
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition:
+    border-color 0.18s,
+    color 0.18s,
+    background 0.18s;
+}
+.playground-mode-tabs button:hover {
+  border-color: var(--accent);
+  color: #ecf0f2;
+}
+.playground-mode-tabs button.is-active {
+  border-color: var(--accent);
+  background: #1a2a36;
+  color: var(--accent);
+}
+.quantity-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.quantity-toggle button {
+  height: 40px;
+  border: 1px solid #575b5f;
+  background: #252829;
+  color: #c5c8cb;
+  font: 500 10px var(--mono);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    border-color 0.18s,
+    color 0.18s,
+    background 0.18s;
+}
+.quantity-toggle button:hover {
+  border-color: var(--accent);
+  color: #ecf0f2;
+}
+.quantity-toggle button.is-active {
+  border-color: var(--accent);
+  background: #1a2a36;
+  color: var(--accent);
+}
+.shield-bars {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 26px;
+  min-height: 350px;
+  padding: 24px 36px;
+  background: radial-gradient(ellipse at 53% 38%, #15222d 0, #151617 72%);
+}
+.shield-bar-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 78px;
+  align-items: center;
+  gap: 16px;
+}
+.shield-bar-name {
+  color: #959b9f;
+  font: 9px var(--mono);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.shield-bar-track {
+  position: relative;
+  height: 30px;
+  border: 1px solid #575b5f;
+  background: #252829;
+  overflow: hidden;
+}
+.shield-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+.shield-bar-fill.is-incident {
+  background: #4a667d;
+}
+.shield-bar-fill.is-transmitted {
+  background: var(--accent);
+}
+.shield-bar-row strong {
+  color: #e2e6eb;
+  font: 500 13px var(--mono);
+  text-align: right;
+}
+.shield-bar-caption {
+  margin: 6px 0 0;
+  color: #959b9f;
+  font: 10px/1.6 var(--mono);
+  letter-spacing: 0.04em;
+}
 .converter-primary {
   white-space: normal !important;
   word-break: break-word;

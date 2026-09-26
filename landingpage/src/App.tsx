@@ -46,6 +46,20 @@ import {
   toSeconds,
   UNIT_FACTS,
 } from "./utils/calculations";
+import {
+  doseCoefficientFor,
+  doseRate,
+  engineeringParts,
+  formatEngineering,
+  type DoseQuantity,
+} from "./utils/dose";
+import { hvlSlab, muFromMaterial, transmitSlab, tvlSlab } from "./utils/shielding";
+import { doseCoefficientRows, omittedPhotonNuclides } from "./data/doseCoefficients";
+import {
+  shieldingMaterialOrder,
+  shieldingMaterials,
+  type ShieldingMaterialId,
+} from "./data/shieldingTables";
 
 const GITHUB_URL = "https://github.com/DanielDeshmukh/pydecay";
 const PYPI_URL = "https://pypi.org/project/pydecay/";
@@ -328,8 +342,8 @@ function Hero() {
         >
           <h2>Model what remains.</h2>
           <p>
-            Radioactive decay mathematics for Python. From a single isotope to branching decay
-            chains, with precision built in.
+            Radioactive decay mathematics for Python. From a single isotope to branching chains,
+            with dose rates and shielding built in.
           </p>
           <div className="hero-actions">
             <a href="/docs" className="button-primary" onClick={nav("/docs")}>
@@ -377,7 +391,21 @@ function SectionHeading({
   );
 }
 
-function Playground({
+type PlaygroundMode = "decay" | "dose" | "shielding";
+
+const playgroundModes: Array<{ id: PlaygroundMode; label: string }> = [
+  { id: "decay", label: "DECAY" },
+  { id: "dose", label: "DOSE" },
+  { id: "shielding", label: "SHIELDING" },
+];
+
+/** Label for an evenly spaced log10 axis tick (0.1, 0.40, 1.6, 6.3, 25, 100). */
+function logTickLabel(decadeExponent: number): string {
+  const value = 10 ** decadeExponent;
+  return value >= 100 ? "100" : value.toPrecision(2);
+}
+
+function DecayPanel({
   selectedId,
   onSelect,
 }: {
@@ -398,172 +426,553 @@ function Playground({
   const code = `from pydecay import Nuclide, decayed_activity\n\nnuclide = Nuclide.load("${nuclide.id}")\nactivity = decayed_activity(\n    A0=${initialLiteral},\n    half_life=nuclide.half_life,\n    time=${halfLives.toFixed(2)} * nuclide.half_life,\n)  # ${formatActivity(activity)} Bq`;
 
   return (
+    <Reveal className="workbench">
+      <div className="workbench-controls">
+        <div className="workbench-caption">
+          <span className="caption-square" /> INPUT PARAMETERS <span>01 / 03</span>
+        </div>
+
+        <label className="field-label" htmlFor="nuclide-select">
+          NUCLIDE
+        </label>
+        <div className="select-wrap">
+          <select
+            id="nuclide-select"
+            value={nuclide.id}
+            onChange={(event) => onSelect(event.target.value)}
+          >
+            {demoNuclides.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.id} / {item.element}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={17} aria-hidden="true" />
+        </div>
+        <p className="field-hint">Half-life: {nuclide.displayHalfLife}</p>
+
+        <label className="field-label activity-label" htmlFor="initial-activity">
+          INITIAL ACTIVITY
+        </label>
+        <div className="number-wrap">
+          <input
+            id="initial-activity"
+            type="number"
+            min="1"
+            step="any"
+            value={activityInput}
+            onChange={(event) => setActivityInput(event.target.value)}
+            onBlur={() => {
+              if (!Number.isFinite(Number(activityInput)) || Number(activityInput) <= 0)
+                setActivityInput("1000");
+            }}
+          />
+          <span>Bq</span>
+        </div>
+
+        <div className="time-label-row">
+          <label className="field-label" htmlFor="time-slider">
+            TIME ELAPSED
+          </label>
+          <span>
+            {elapsed.toFixed(2)} {nuclide.timeUnit}
+          </span>
+        </div>
+        <input
+          className="time-slider"
+          id="time-slider"
+          type="range"
+          min="0"
+          max="5"
+          step="0.01"
+          value={halfLives}
+          style={{ "--slider-progress": `${(halfLives / 5) * 100}%` } as CSSProperties}
+          onChange={(event) => setHalfLives(Number(event.target.value))}
+          aria-valuetext={`${elapsed.toFixed(2)} ${nuclide.timeUnit}, ${halfLives.toFixed(2)} half-lives`}
+        />
+        <div className="range-ends">
+          <span>0</span>
+          <span>5 HALF-LIVES</span>
+        </div>
+
+        <div className="result-readout" aria-live="polite">
+          <span>ACTIVITY REMAINING</span>
+          <div>
+            {formatActivity(activity)} <small>Bq</small>
+          </div>
+          <p>{percentRemaining(remaining)}% of the initial activity remains</p>
+        </div>
+      </div>
+
+      <div className="workbench-output">
+        <div className="output-topline">
+          <span>
+            DECAY CURVE <i /> {nuclide.id}
+          </span>
+          <span>
+            A(t) = A0 * 2<sup>-t / t1/2</sup>
+          </span>
+        </div>
+        <div className="chart-wrap">
+          <svg
+            viewBox="0 0 760 410"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-label={`${nuclide.id} decay curve, ${formatActivity(activity)} becquerels remaining after ${elapsed.toFixed(2)} ${nuclide.timeUnit}`}
+          >
+            <defs>
+              <linearGradient id="workbench-area" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor={ACCENT} stopOpacity="0.14" />
+                <stop offset="100%" stopColor={ACCENT} stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {[58, 126, 194, 262, 330].map((y, index) => (
+              <g key={y}>
+                <line className="chart-grid-line" x1="62" x2="712" y1={y} y2={y} />
+                <text className="chart-tick" x="48" y={y + 4} textAnchor="end">
+                  {formatAxis(initialActivity * (1 - index / 4))}
+                </text>
+              </g>
+            ))}
+            {Array.from({ length: 6 }, (_, index) => {
+              const x = 62 + index * 130;
+              return (
+                <g key={index}>
+                  <line className="chart-grid-line vertical" x1={x} x2={x} y1="58" y2="330" />
+                  <text className="chart-tick" x={x} y="361" textAnchor="middle">
+                    {formatTimeTick((index * nuclide.halfLifeDays) / nuclide.daysPerUnit)}
+                  </text>
+                </g>
+              );
+            })}
+            <path d={`${chartPath} L712 330 L62 330 Z`} fill="url(#workbench-area)" />
+            <path d={chartPath} fill="none" stroke="#4a667d" strokeWidth="2" />
+            <motion.path
+              d={chartPath}
+              fill="none"
+              stroke={ACCENT}
+              strokeWidth="3"
+              strokeLinecap="round"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: halfLives / 5 }}
+              transition={{ duration: 0.55, ease: "easeOut" }}
+            />
+            <motion.line
+              className="chart-marker-line"
+              y1="58"
+              y2="330"
+              initial={false}
+              animate={{ x1: markerCX, x2: markerCX }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+            <motion.circle
+              r="7"
+              fill={ACCENT}
+              stroke="#151617"
+              strokeWidth="3"
+              initial={false}
+              animate={{ cx: markerCX, cy: markerCY }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+            <text className="chart-axis-title" x="62" y="24">
+              ACTIVITY / Bq
+            </text>
+            <text className="chart-axis-title" x="712" y="400" textAnchor="end">
+              TIME / {nuclide.timeUnit.toUpperCase()}
+            </text>
+          </svg>
+        </div>
+        <CodeBlock code={code} label="GENERATED PYTHON" compact className="workbench-code" />
+      </div>
+    </Reveal>
+  );
+}
+
+function DosePanel() {
+  const [nuclideId, setNuclideId] = useState("Co-60");
+  const [activityInput, setActivityInput] = useState("1e6");
+  const [logDistance, setLogDistance] = useState(0);
+  const [quantity, setQuantity] = useState<DoseQuantity>("kerma");
+
+  const parsedActivity = Number(activityInput);
+  const activity = Number.isFinite(parsedActivity) && parsedActivity > 0 ? parsedActivity : 1e6;
+  const distance = 10 ** logDistance;
+  const rate = doseRate(activity, nuclideId, distance, quantity);
+  const gamma = doseCoefficientFor(nuclideId);
+  const rateParts = engineeringParts(rate ?? 0);
+  const unit = quantity === "ambient" ? "Sv/h" : "Gy/h";
+  const markerX = 62 + ((logDistance + 1) / 3) * 650;
+  const markerY = 58 + ((logDistance + 1) / 3) * 270;
+  const code = `from pydecay import dose_rate\n\nrate = dose_rate(${activityLiteral(activity)}, "${nuclideId}", r=${distance.toFixed(2)}, quantity="${quantity}")\nprint(rate)  # ${
+    rate === null ? "DoseDataError" : `${rateParts.mantissa} ${rateParts.suffix}${unit}`
+  }`;
+
+  return (
+    <Reveal className="workbench">
+      <div className="workbench-controls">
+        <div className="workbench-caption">
+          <span className="caption-square" /> DOSE PARAMETERS <span>02 / 03</span>
+        </div>
+
+        <label className="field-label" htmlFor="dose-nuclide-select">
+          SOURCE NUCLIDE
+        </label>
+        <div className="select-wrap">
+          <select
+            id="dose-nuclide-select"
+            value={nuclideId}
+            onChange={(event) => setNuclideId(event.target.value)}
+          >
+            {doseCoefficientRows.map((row) => (
+              <option key={row.id} value={row.id}>
+                {row.id}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={17} aria-hidden="true" />
+        </div>
+        <p className="field-hint">
+          Γ = {gamma === null ? "—" : gamma} R·cm²/mCi/h - bundled exposure-rate constant
+        </p>
+        <p className="field-hint">
+          Photon-free ({Object.keys(omittedPhotonNuclides).join(", ")}) raise DoseDataError.
+        </p>
+
+        <label className="field-label activity-label" htmlFor="dose-activity">
+          ACTIVITY
+        </label>
+        <div className="number-wrap">
+          <input
+            id="dose-activity"
+            type="number"
+            min="1"
+            step="any"
+            value={activityInput}
+            onChange={(event) => setActivityInput(event.target.value)}
+            onBlur={() => {
+              if (!(Number.isFinite(Number(activityInput)) && Number(activityInput) > 0)) {
+                setActivityInput("1e6");
+              }
+            }}
+          />
+          <span>Bq</span>
+        </div>
+
+        <div className="time-label-row">
+          <label className="field-label" htmlFor="dose-distance">
+            DISTANCE
+          </label>
+          <span>{distance.toFixed(2)} m</span>
+        </div>
+        <input
+          className="time-slider"
+          id="dose-distance"
+          type="range"
+          min="-1"
+          max="2"
+          step="0.01"
+          value={logDistance}
+          style={{ "--slider-progress": `${((logDistance + 1) / 3) * 100}%` } as CSSProperties}
+          onChange={(event) => setLogDistance(Number(event.target.value))}
+          aria-valuetext={`${distance.toFixed(2)} metres`}
+        />
+        <div className="range-ends">
+          <span>0.1 m</span>
+          <span>100 m</span>
+        </div>
+
+        <span className="field-label">QUANTITY</span>
+        <div className="quantity-toggle" role="group" aria-label="Dose quantity">
+          <button
+            type="button"
+            aria-pressed={quantity === "kerma"}
+            className={quantity === "kerma" ? "is-active" : ""}
+            onClick={() => setQuantity("kerma")}
+          >
+            KERMA - Gy/h
+          </button>
+          <button
+            type="button"
+            aria-pressed={quantity === "ambient"}
+            className={quantity === "ambient" ? "is-active" : ""}
+            onClick={() => setQuantity("ambient")}
+          >
+            AMBIENT - Sv/h
+          </button>
+        </div>
+
+        <div className="result-readout" aria-live="polite">
+          <span>{quantity === "ambient" ? "AMBIENT DOSE RATE" : "AIR KERMA RATE"}</span>
+          <div>
+            {rate === null ? "—" : rateParts.mantissa}{" "}
+            <small>
+              {rate === null ? "" : rateParts.suffix}
+              {unit}
+            </small>
+          </div>
+          <p>
+            {rate === null
+              ? `No photon coefficients for ${nuclideId} - pydecay raises DoseDataError.`
+              : `${activityLiteral(activity)} Bq at ${distance.toFixed(2)} m - inverse-square point source`}
+          </p>
+        </div>
+      </div>
+
+      <div className="workbench-output">
+        <div className="output-topline">
+          <span>
+            DOSE RATE <i /> {nuclideId}
+          </span>
+          <span>Ξ(r) = Γ · A / r²</span>
+        </div>
+        <div className="chart-wrap">
+          <svg
+            viewBox="0 0 760 410"
+            preserveAspectRatio="xMidYMid meet"
+            role="img"
+            aria-label={`Inverse-square dose rate curve for ${nuclideId}, marker at ${distance.toFixed(2)} metres`}
+          >
+            {[0, 1, 2, 3, 4, 5, 6].map((step) => {
+              const y = 58 + step * 45;
+              return (
+                <g key={`db-${step}`}>
+                  <line className="chart-grid-line" x1="62" x2="712" y1={y} y2={y} />
+                  <text className="chart-tick" x="48" y={y + 4} textAnchor="end">
+                    {step === 0 ? "0" : `-${step * 10}`} dB
+                  </text>
+                </g>
+              );
+            })}
+            {[-1, -0.4, 0.2, 0.8, 1.4, 2].map((decade) => {
+              const x = 62 + ((decade + 1) / 3) * 650;
+              return (
+                <g key={decade}>
+                  <line className="chart-grid-line vertical" x1={x} x2={x} y1="58" y2="328" />
+                  <text className="chart-tick" x={x} y="361" textAnchor="middle">
+                    {logTickLabel(decade)}
+                  </text>
+                </g>
+              );
+            })}
+            <line x1="62" y1="58" x2="712" y2="328" stroke="#4a667d" strokeWidth="2" />
+            <motion.line
+              className="chart-marker-line"
+              y1="58"
+              y2="328"
+              initial={false}
+              animate={{ x1: markerX, x2: markerX }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+            <motion.circle
+              r="7"
+              fill={ACCENT}
+              stroke="#151617"
+              strokeWidth="3"
+              initial={false}
+              animate={{ cx: markerX, cy: markerY }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+            <text className="chart-axis-title" x="62" y="24">
+              RELATIVE RATE / dB
+            </text>
+            <text className="chart-axis-title" x="712" y="400" textAnchor="end">
+              DISTANCE / m (log)
+            </text>
+          </svg>
+        </div>
+        <CodeBlock code={code} label="GENERATED PYTHON" compact className="workbench-code" />
+      </div>
+    </Reveal>
+  );
+}
+
+function ShieldingPanel() {
+  const [materialId, setMaterialId] = useState<ShieldingMaterialId>("lead");
+  const [logEnergy, setLogEnergy] = useState(Math.log10(1.25));
+  const [thicknessMm, setThicknessMm] = useState(10);
+
+  const energy = 10 ** logEnergy;
+  const energyLabel = Number(energy.toPrecision(3));
+  const energySpan = Math.log10(20) + 2;
+  const thicknessM = thicknessMm / 1000;
+  const mu = muFromMaterial(materialId, energy);
+  const half = hvlSlab(materialId, energy);
+  const tenth = tvlSlab(materialId, energy);
+  const transmitted = transmitSlab(1, materialId, thicknessM, energy);
+  const material = shieldingMaterials[materialId];
+  const percent = transmitted === null ? 0 : transmitted * 100;
+  const percentLabel = percent >= 0.01 ? percent.toFixed(3) : percent.toExponential(1);
+  const code = `from pydecay import hvl_slab, transmit_slab\n\nprint(hvl_slab("${materialId}", ${energyLabel}))  # ${
+    half === null ? "?" : `${(half * 1000).toFixed(2)} mm`
+  }\nprint(transmit_slab(1.0, "${materialId}", ${thicknessM.toFixed(4)}, ${energyLabel}))  # ${percentLabel} %`;
+
+  return (
+    <Reveal className="workbench">
+      <div className="workbench-controls">
+        <div className="workbench-caption">
+          <span className="caption-square" /> SHIELDING PARAMETERS <span>03 / 03</span>
+        </div>
+
+        <label className="field-label" htmlFor="shield-material-select">
+          SHIELD MATERIAL
+        </label>
+        <div className="select-wrap">
+          <select
+            id="shield-material-select"
+            value={materialId}
+            onChange={(event) => setMaterialId(event.target.value as ShieldingMaterialId)}
+          >
+            {shieldingMaterialOrder.map((id) => (
+              <option key={id} value={id}>
+                {shieldingMaterials[id].label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={17} aria-hidden="true" />
+        </div>
+        <p className="field-hint">
+          ρ = {material.densityGcm3} g/cm³ - NIST XCOM, 45 log-spaced energies
+        </p>
+
+        <div className="time-label-row">
+          <label className="field-label" htmlFor="shield-energy">
+            PHOTON ENERGY
+          </label>
+          <span>{energyLabel} MeV</span>
+        </div>
+        <input
+          className="time-slider"
+          id="shield-energy"
+          type="range"
+          min="-2"
+          max={Math.log10(20)}
+          step="0.001"
+          value={logEnergy}
+          style={
+            {
+              "--slider-progress": `${((logEnergy + 2) / energySpan) * 100}%`,
+            } as CSSProperties
+          }
+          onChange={(event) => setLogEnergy(Number(event.target.value))}
+          aria-valuetext={`${energyLabel} megaelectronvolts`}
+        />
+        <div className="range-ends">
+          <span>0.01 MeV</span>
+          <span>20 MeV</span>
+        </div>
+
+        <div className="time-label-row">
+          <label className="field-label" htmlFor="shield-thickness">
+            THICKNESS
+          </label>
+          <span>{thicknessMm.toFixed(1)} mm</span>
+        </div>
+        <input
+          className="time-slider"
+          id="shield-thickness"
+          type="range"
+          min="0"
+          max="100"
+          step="0.5"
+          value={thicknessMm}
+          style={{ "--slider-progress": `${thicknessMm}%` } as CSSProperties}
+          onChange={(event) => setThicknessMm(Number(event.target.value))}
+          aria-valuetext={`${thicknessMm.toFixed(1)} millimetres`}
+        />
+        <div className="range-ends">
+          <span>0 mm</span>
+          <span>100 mm</span>
+        </div>
+
+        <div className="result-readout" aria-live="polite">
+          <span>TRANSMITTED INTENSITY</span>
+          <div>
+            {transmitted === null ? "—" : percentLabel} <small>%</small>
+          </div>
+          <p>
+            {mu === null || half === null || tenth === null
+              ? "Energy outside the bundled 0.01-20 MeV table."
+              : `μ = ${formatEngineering(mu)} m⁻¹ · HVL = ${formatEngineering(half * 1000, 2)} mm · TVL = ${formatEngineering(tenth * 1000, 2)} mm`}
+          </p>
+        </div>
+      </div>
+
+      <div className="workbench-output">
+        <div className="output-topline">
+          <span>
+            ATTENUATION <i /> {material.label.toUpperCase()}
+          </span>
+          <span>I = I0 · exp(−μ · x)</span>
+        </div>
+        <div
+          className="shield-bars"
+          role="img"
+          aria-label={`Transmission through ${material.label}: ${percentLabel} percent of incident intensity`}
+        >
+          <div className="shield-bar-row">
+            <span className="shield-bar-name">INCIDENT I0</span>
+            <div className="shield-bar-track">
+              <div className="shield-bar-fill is-incident" />
+            </div>
+            <strong>100%</strong>
+          </div>
+          <div className="shield-bar-row">
+            <span className="shield-bar-name">TRANSMITTED I</span>
+            <div className="shield-bar-track">
+              <motion.div
+                className="shield-bar-fill is-transmitted"
+                initial={false}
+                animate={{ width: `${Math.max(percent, 0)}%` }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              />
+            </div>
+            <strong>{percentLabel}%</strong>
+          </div>
+          <p className="shield-bar-caption">
+            {thicknessMm.toFixed(1)} mm {material.label} at {energyLabel} MeV - narrow-beam, no
+            buildup
+          </p>
+        </div>
+        <CodeBlock code={code} label="GENERATED PYTHON" compact className="workbench-code" />
+      </div>
+    </Reveal>
+  );
+}
+
+function Playground({
+  selectedId,
+  onSelect,
+}: {
+  selectedId: string;
+  onSelect: (id: string) => void;
+}) {
+  const [mode, setMode] = useState<PlaygroundMode>("decay");
+
+  return (
     <section className="playground-section section-shell" id="playground">
       <SectionHeading
         number="01"
         label="THE PLAYGROUND"
         title="See time do its work."
-        description="Choose a nuclide, set the starting activity, and watch the decay equation come to life. This browser preview mirrors the single-isotope mathematics."
+        description="Three live models in your browser: decay curves, point-source dose rates, and narrow-beam shielding - each one generating the exact pydecay call to run in Python."
       />
-      <Reveal className="workbench">
-        <div className="workbench-controls">
-          <div className="workbench-caption">
-            <span className="caption-square" /> INPUT PARAMETERS <span>01 / 03</span>
-          </div>
-
-          <label className="field-label" htmlFor="nuclide-select">
-            NUCLIDE
-          </label>
-          <div className="select-wrap">
-            <select
-              id="nuclide-select"
-              value={nuclide.id}
-              onChange={(event) => onSelect(event.target.value)}
-            >
-              {demoNuclides.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.id} / {item.element}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={17} aria-hidden="true" />
-          </div>
-          <p className="field-hint">Half-life: {nuclide.displayHalfLife}</p>
-
-          <label className="field-label activity-label" htmlFor="initial-activity">
-            INITIAL ACTIVITY
-          </label>
-          <div className="number-wrap">
-            <input
-              id="initial-activity"
-              type="number"
-              min="1"
-              step="any"
-              value={activityInput}
-              onChange={(event) => setActivityInput(event.target.value)}
-              onBlur={() => {
-                if (!Number.isFinite(Number(activityInput)) || Number(activityInput) <= 0)
-                  setActivityInput("1000");
-              }}
-            />
-            <span>Bq</span>
-          </div>
-
-          <div className="time-label-row">
-            <label className="field-label" htmlFor="time-slider">
-              TIME ELAPSED
-            </label>
-            <span>
-              {elapsed.toFixed(2)} {nuclide.timeUnit}
-            </span>
-          </div>
-          <input
-            className="time-slider"
-            id="time-slider"
-            type="range"
-            min="0"
-            max="5"
-            step="0.01"
-            value={halfLives}
-            style={{ "--slider-progress": `${(halfLives / 5) * 100}%` } as CSSProperties}
-            onChange={(event) => setHalfLives(Number(event.target.value))}
-            aria-valuetext={`${elapsed.toFixed(2)} ${nuclide.timeUnit}, ${halfLives.toFixed(2)} half-lives`}
-          />
-          <div className="range-ends">
-            <span>0</span>
-            <span>5 HALF-LIVES</span>
-          </div>
-
-          <div className="result-readout" aria-live="polite">
-            <span>ACTIVITY REMAINING</span>
-            <div>
-              {formatActivity(activity)} <small>Bq</small>
-            </div>
-            <p>{percentRemaining(remaining)}% of the initial activity remains</p>
-          </div>
-        </div>
-
-        <div className="workbench-output">
-          <div className="output-topline">
-            <span>
-              DECAY CURVE <i /> {nuclide.id}
-            </span>
-            <span>
-              A(t) = A0 * 2<sup>-t / t1/2</sup>
-            </span>
-          </div>
-          <div className="chart-wrap">
-            <svg
-              viewBox="0 0 760 410"
-              preserveAspectRatio="xMidYMid meet"
-              role="img"
-              aria-label={`${nuclide.id} decay curve, ${formatActivity(activity)} becquerels remaining after ${elapsed.toFixed(2)} ${nuclide.timeUnit}`}
-            >
-              <defs>
-                <linearGradient id="workbench-area" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor={ACCENT} stopOpacity="0.14" />
-                  <stop offset="100%" stopColor={ACCENT} stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {[58, 126, 194, 262, 330].map((y, index) => (
-                <g key={y}>
-                  <line className="chart-grid-line" x1="62" x2="712" y1={y} y2={y} />
-                  <text className="chart-tick" x="48" y={y + 4} textAnchor="end">
-                    {formatAxis(initialActivity * (1 - index / 4))}
-                  </text>
-                </g>
-              ))}
-              {Array.from({ length: 6 }, (_, index) => {
-                const x = 62 + index * 130;
-                return (
-                  <g key={index}>
-                    <line className="chart-grid-line vertical" x1={x} x2={x} y1="58" y2="330" />
-                    <text className="chart-tick" x={x} y="361" textAnchor="middle">
-                      {formatTimeTick((index * nuclide.halfLifeDays) / nuclide.daysPerUnit)}
-                    </text>
-                  </g>
-                );
-              })}
-              <path d={`${chartPath} L712 330 L62 330 Z`} fill="url(#workbench-area)" />
-              <path d={chartPath} fill="none" stroke="#4a667d" strokeWidth="2" />
-              <motion.path
-                d={chartPath}
-                fill="none"
-                stroke={ACCENT}
-                strokeWidth="3"
-                strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: halfLives / 5 }}
-                transition={{ duration: 0.55, ease: "easeOut" }}
-              />
-              <motion.line
-                className="chart-marker-line"
-                y1="58"
-                y2="330"
-                initial={false}
-                animate={{ x1: markerCX, x2: markerCX }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              />
-              <motion.circle
-                r="7"
-                fill={ACCENT}
-                stroke="#151617"
-                strokeWidth="3"
-                initial={false}
-                animate={{ cx: markerCX, cy: markerCY }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-              />
-              <text className="chart-axis-title" x="62" y="24">
-                ACTIVITY / Bq
-              </text>
-              <text className="chart-axis-title" x="712" y="400" textAnchor="end">
-                TIME / {nuclide.timeUnit.toUpperCase()}
-              </text>
-            </svg>
-          </div>
-          <CodeBlock code={code} label="GENERATED PYTHON" compact className="workbench-code" />
-        </div>
-      </Reveal>
+      <div className="playground-mode-tabs" role="tablist" aria-label="Playground mode">
+        {playgroundModes.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={mode === item.id}
+            className={mode === item.id ? "is-active" : ""}
+            onClick={() => setMode(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      {mode === "decay" && <DecayPanel selectedId={selectedId} onSelect={onSelect} />}
+      {mode === "dose" && <DosePanel />}
+      {mode === "shielding" && <ShieldingPanel />}
       <p className="workbench-footnote">
         Preview calculated in your browser. Run the generated code with pydecay for your Python
         workflow.
@@ -886,7 +1295,7 @@ tau = mean_lifetime_s(lam)     # ${formatConverter(tau)} s`;
         </div>
       </Reveal>
       <p className="workbench-footnote">
-        Preview calculated in your browser — same formulas as pydecay 0.5.1 top-level exports (
+        Preview calculated in your browser — same formulas as pydecay 0.6.0 top-level exports (
         <code>to_seconds</code>, <code>bq_to_ci</code>, <code>ci_to_bq</code>,{" "}
         <code>atoms_to_grams</code>, <code>grams_to_atoms</code>, <code>decay_constant</code>,{" "}
         <code>mean_lifetime_s</code>).
@@ -902,7 +1311,7 @@ type Feature = {
   tag: string;
   detail: string;
   code: string;
-  graphic: "single" | "chain" | "stability" | "branching";
+  graphic: "single" | "chain" | "stability" | "branching" | "dose" | "shielding";
 };
 
 const features: Feature[] = [
@@ -944,6 +1353,26 @@ const features: Feature[] = [
       "Model star-shaped branches with fractions up to one; any remainder flows to an untracked sink.",
     code: `from pydecay import DecayChain\n\nb = DecayChain.branching(\n    parent="P", branches={"D1": 0.6, "D2": 0.3},\n    lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5},\n)`,
     graphic: "branching",
+  },
+  {
+    number: "05",
+    title: "Dose rates",
+    summary: "Point source to dose, in one call.",
+    tag: "EXPOSURE & AIR KERMA",
+    detail:
+      "Curated exposure-rate constants for 34 photon-emitting nuclides give air-kerma or ambient dose-equivalent rates at any distance.",
+    code: `from pydecay import dose_rate\n\nrate = dose_rate(1e6, "Co-60", r=1.0)  # Gy/h\nambient = dose_rate(1e6, "Co-60", r=1.0, quantity="ambient")  # Sv/h\nprint(rate, ambient)`,
+    graphic: "dose",
+  },
+  {
+    number: "06",
+    title: "Shielding",
+    summary: "Beer-Lambert, no guesswork.",
+    tag: "NARROW-BEAM ATTENUATION",
+    detail:
+      "NIST XCOM coefficients for seven materials: half-value layers, tenth-value layers, and transmission through any slab.",
+    code: `from pydecay import hvl_slab, transmit_slab\n\nprint(hvl_slab("lead", 1.25))  # m\nprint(transmit_slab(1.0, "lead", 0.01, 1.25))  # 51% through 1 cm`,
+    graphic: "shielding",
   },
 ];
 
@@ -1009,6 +1438,35 @@ function FeatureGraphic({ type }: { type: Feature["graphic"] }) {
           STABLE
         </text>
       </svg>
+    );
+  }
+
+  if (type === "dose") {
+    return (
+      <div className="formula-graphic" aria-label="Point-source inverse-square dose rate formula">
+        <span className="formula-small">POINT SOURCE AT DISTANCE r</span>
+        <div>
+          Ξ(r) <em>=</em> Γ · A / r²
+        </div>
+        <span className="formula-bottom">
+          Γ [R·cm²/mCi/h] &nbsp;&nbsp; 1 R = 8.76 mGy IN AIR &nbsp;&nbsp; AMBIENT VIA H*(10) AT 1.25
+          MeV
+        </span>
+      </div>
+    );
+  }
+
+  if (type === "shielding") {
+    return (
+      <div className="formula-graphic" aria-label="Beer-Lambert narrow-beam attenuation formula">
+        <span className="formula-small">NARROW-BEAM ATTENUATION</span>
+        <div>
+          I <em>=</em> I<sub>0</sub> e<sup>-&mu;x</sup>
+        </div>
+        <span className="formula-bottom">
+          HVL = ln2 / &mu; &nbsp;&nbsp; TVL = ln10 / &mu; &nbsp;&nbsp; NIST XCOM / 7 MATERIALS
+        </span>
+      </div>
     );
   }
 
@@ -1098,7 +1556,9 @@ function Capabilities() {
             >
               <div className="feature-panel-top">
                 <span>{feature.tag}</span>
-                <span>0{active + 1} / 04</span>
+                <span>
+                  0{active + 1} / 0{features.length}
+                </span>
               </div>
               <FeatureGraphic type={feature.graphic} />
               <p className="feature-detail">{feature.detail}</p>
@@ -1629,7 +2089,7 @@ function DocsPage({ path }: { path: string }) {
         <div className="docs-masthead-meta">
           <span>PYTHON 3.10+</span>
           <span>MIT + ICRP-107 DATA</span>
-          <span>VERSION 0.5.1</span>
+          <span>VERSION 0.6.0</span>
         </div>
       </div>
 
@@ -1886,7 +2346,7 @@ function DocsPage({ path }: { path: string }) {
 
             <h3 className="docs-subhead">Cheat sheet (copy-paste everything)</h3>
             <CodeBlock
-              code={`from pydecay import (\n    Nuclide, DecayChain, Inventory,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    dn_dt, da_dt, decay_ode_residual,\n    __version__,\n)\n\nprint(__version__)  # "0.5.1"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nprint(dn_dt(1e6, "8.02 days"))      # atoms/s\nprint(da_dt(1000.0, "8.02 days", 0.0))  # Bq/s\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
+              code={`from pydecay import (\n    Nuclide, DecayChain, Inventory,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    dn_dt, da_dt, decay_ode_residual,\n    __version__,\n)\n\nprint(__version__)  # \"0.6.0\"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nprint(dn_dt(1e6, "8.02 days"))      # atoms/s\nprint(da_dt(1000.0, "8.02 days", 0.0))  # Bq/s\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
               label="FULL CHEAT SHEET"
             />
             <p className="docs-small-result">
@@ -2118,6 +2578,31 @@ function DocsPage({ path }: { path: string }) {
             </p>
             <div className="changelog-list">
               <article className="changelog-entry is-current">
+                <header>
+                  <span>0.6.0</span>
+                  <time dateTime="2026-09-24">2026-09-24</time>
+                </header>
+                <h4>Added</h4>
+                <ul>
+                  <li>
+                    Point-source dose rates: <code>dose_rate</code>, <code>exposure_rate</code>,{" "}
+                    <code>air_kerma_rate</code>, and <code>Inventory.dose_rate()</code> with curated
+                    photon coefficients for 34 nuclides.
+                  </li>
+                  <li>
+                    Narrow-beam shielding: <code>mu_from_material</code>, <code>hvl</code>,{" "}
+                    <code>tvl</code>, <code>transmit</code>, <code>hvl_slab</code>,{" "}
+                    <code>tvl_slab</code>, <code>transmit_slab</code>,{" "}
+                    <code>multilayer_transmit</code> over bundled NIST XCOM tables for seven
+                    materials.
+                  </li>
+                  <li>
+                    New exceptions: <code>DoseDataError</code>, <code>MaterialError</code>.
+                  </li>
+                  <li>Landing page: DOSE and SHIELDING playground tabs.</li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
                 <header>
                   <span>0.5.1</span>
                   <time dateTime="2026-09-24">2026-09-24</time>

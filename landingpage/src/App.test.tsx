@@ -129,6 +129,36 @@ describe("App home page", () => {
     expect(screen.getByText(/Half-life: 5\.27 years/)).toBeTruthy();
   });
 
+  it("switches playground to the dose tab and shows a live dose rate", () => {
+    stubLocation("/");
+    render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "DOSE" }));
+    expect(screen.getByText("AIR KERMA RATE")).toBeTruthy();
+    expect(screen.getByLabelText("SOURCE NUCLIDE")).toBeTruthy();
+    expect(screen.getByText(/Photon-free \(/)).toBeTruthy();
+    expect(screen.getAllByText(/dose_rate\(/).length).toBeGreaterThan(0);
+  });
+
+  it("toggles the dose quantity to ambient", () => {
+    stubLocation("/");
+    render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "DOSE" }));
+    const toggle = screen.getByRole("button", { name: /AMBIENT/ });
+    fireEvent.click(toggle);
+    expect(screen.getByText("AMBIENT DOSE RATE")).toBeTruthy();
+    expect(toggle.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("switches playground to the shielding tab and computes transmission", () => {
+    stubLocation("/");
+    render(<App />);
+    fireEvent.click(screen.getByRole("tab", { name: "SHIELDING" }));
+    expect(screen.getByText("TRANSMITTED INTENSITY")).toBeTruthy();
+    expect(screen.getByLabelText("SHIELD MATERIAL")).toBeTruthy();
+    expect(screen.getByText(/HVL =/)).toBeTruthy();
+    expect(screen.getAllByText(/transmit_slab\(/).length).toBeGreaterThan(0);
+  });
+
   it("renders navigation links", () => {
     stubLocation("/");
     render(<App />);
@@ -187,7 +217,7 @@ describe("App docs page", () => {
     stubLocation("/docs");
     render(<App />);
     expect(screen.getByRole("heading", { name: /Documentation/i })).toBeTruthy();
-    expect(screen.getByText(/VERSION 0\.5\.1/)).toBeTruthy();
+    expect(screen.getByText(/VERSION 0\.6\.0/)).toBeTruthy();
     expect(screen.getByText(/pip install pydecay/)).toBeTruthy();
   });
 
@@ -229,9 +259,11 @@ describe("App docs page", () => {
     expect(screen.getAllByText(/decay_ode_residual/).length).toBeGreaterThan(0);
   });
 
-  it("shows changelog with current 0.5.1 entry", () => {
+  it("shows changelog with current 0.6.0 entry", () => {
     stubLocation("/docs/changelog");
     render(<App />);
+    expect(screen.getAllByText(/0\.6\.0/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/DoseDataError/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/0\.5\.1/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/ICRP-107 catalog counting/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/0\.5\.0/).length).toBeGreaterThan(0);

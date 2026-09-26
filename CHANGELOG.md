@@ -5,6 +5,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Landing page: DOSE and SHIELDING playground tabs with browser-side,
+  pydecay-parity calculations - point-source air-kerma/ambient dose rates
+  from the 34-row gamma table (six photon-free nuclides called out as
+  `DoseDataError`) and NIST XCOM transmission, HVL, and TVL for the seven
+  bundled materials - each tab emitting runnable pydecay snippets.
+- Landing page: two new capability cards (Dose rates, Shielding).
+
+### Changed
+- Landing page: refreshed hero and playground copy for v0.6; version
+  bumped to 0.6.0.
+
 ## [0.6.0] - 2026-09-24
 
 ### Added
