@@ -5,6 +5,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-24
+
+### Added
+- Point-source air-kerma and exposure dose rates (`dose_rate`, `exposure_rate`, `air_kerma_rate`)
+  with curated per-nuclide coefficients and optional ambient H*(10) quantity.
+- Narrow-beam shielding: `mu`, `hvl`, `tvl`, `transmit`, `transmit_slab`, `multilayer_transmit`
+  backed by bundled NIST XCOM attenuation tables for seven materials.
+- `Inventory.dose_rate()` composing per-nuclide rates.
+- New exceptions: `DoseDataError`, `MaterialError`.
+
 ## [0.5.1] - 2026-09-24
 
 ### Changed

@@ -1,5 +1,7 @@
 # Raw ICRP-07 drop directory
 
+![pydecay banner](https://raw.githubusercontent.com/DanielDeshmukh/pydecay/main/docs/public/1200x630.png)
+
 Official ICRP-07 CD/supplement files (`ICRP-07.NDX`, `ICRP-07.RAD`,
 `ICRP-07.BET`, ACK, NSF) land here when available. Large raw files are
 gitignored; only `.gitkeep` and this README are tracked.

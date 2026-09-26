@@ -115,6 +115,7 @@ Quantity) is mirrored by accessors and preserved across `decay`.
 | `.instantaneous_rates` | `instantaneous_rates() -> dict[str, float \| Quantity]` | dN_i/dt (atoms/s) at current state via G @ N; mirrors kind |
 | `.masses` | `masses() -> dict[str, float \| Quantity]` | Mass (g) now; mirrors kind |
 | `.total_activity` | `total_activity() -> float` | Sum of activities over the closure (always Bq float) |
+| `.dose_rate` | `dose_rate(r=1.0, *, quantity="kerma", time=0.0) -> float \| Quantity` | Summed point-source dose rate over closure species; plain `r` is metres, Quantity/string parsed, result mirrors `r`; `time != 0` decays first |
 | `.half_lives` | `half_lives() -> dict[str, float]` | Half-life (s) per species; `inf` for stable |
 | `.names` | `tuple[str, ...]` | Species in graph order (seeds first, then BFS progeny) |
 | `.n_species` | `int` | Closure size |
@@ -201,6 +202,48 @@ decay_ode_residual(1e6, 8.02 * 86400)  # 0.0
 decay_ode_residual(1e6, 10.0, dn_dt_value=-0.0693 * 1e6)  # ~0 if consistent
 ```
 
+## Dose rates (0.6.0)
+
+Point-source exposure, air-kerma, and ambient dose-equivalent rates from
+curated per-nuclide coefficients (see [Dose rates](dose.md) for provenance
+and conventions). Pure SI internally; no pint required.
+
+| Function | Signature | Description |
+|---|---|---|
+| `dose_rate` | `dose_rate(activity_Bq, nuclide, r_m=1.0, *, quantity="kerma", gamma_R_cm2_mCi_h=None, attenuate_in_air=False) -> float` | Gy/h (default) or Sv/h (`quantity="ambient"`); table lookup unless an explicit constant is passed; unbundled nuclides raise `DoseDataError` |
+| `exposure_rate` | `exposure_rate(gamma_R_cm2_mCi_h, activity_Bq, r_cm) -> float` | Exposure rate in R/h from an explicit constant |
+| `air_kerma_rate` | `air_kerma_rate(gamma_R_cm2_mCi_h, activity_Bq, r_cm) -> float` | Air-kerma rate in Gy/h (`exposure * 8.76e-3`) |
+
+```python
+from pydecay import dose_rate
+dose_rate(1e6, "Co-60", r_m=1.0)                     # 3.07e-7 Gy/h
+dose_rate(1e6, "Co-60", r_m=1.0, quantity="ambient") # 3.57e-7 Sv/h
+```
+
+## Shielding and materials (0.6.0)
+
+Narrow-beam Beer-Lambert attenuation with bundled NIST XCOM tables for seven
+materials (see [Shielding](shielding.md)). Pure-SI floats: metres, MeV,
+`mu` in 1/m.
+
+| Function | Signature | Description |
+|---|---|---|
+| `material` | `material(name) -> Material` | Registry lookup; raises `MaterialError` |
+| `available_materials` | `available_materials() -> tuple[str, ...]` | `("air", "aluminum", "concrete", "iron", "lead", "polyethylene", "water")` |
+| `mu_from_material` | `mu_from_material(material, energy_MeV) -> float` | Linear attenuation coefficient in 1/m (log-log interpolated) |
+| `hvl` / `tvl` | `hvl(mu) -> float` / `tvl(mu) -> float` | Half- / tenth-value layer in m (`ln2/mu`, `ln10/mu`) |
+| `hvl_slab` / `tvl_slab` | `hvl_slab(material, energy_MeV) -> float` | Same, by material name and energy |
+| `transmit` | `transmit(I0, mu, x, *, buildup=None) -> float` | `I0 * exp(-mu * x)`; `buildup` reserved (raises `NotImplementedError`) |
+| `transmit_slab` | `transmit_slab(I0, material, thickness, energy_MeV, *, buildup=None) -> float` | Transmission through one slab |
+| `multilayer_transmit` | `multilayer_transmit(I0, layers, energy_MeV) -> float` | Product over `(material, thickness_m)` layers |
+
+```python
+from pydecay import material, hvl_slab, transmit_slab
+material("lead").mu(1.25)          # 66.73 1/m
+hvl_slab("lead", 1.25)             # 0.0104 m
+transmit_slab(1.0, "lead", 0.01, 1.25)  # 0.513
+```
+
 ## Exception hierarchy
 
 All package-raised errors derive from `PyDecayError`.
@@ -214,6 +257,8 @@ All package-raised errors derive from `PyDecayError`.
 | `ChainDefinitionError` | Empty chain, length mismatch, branching fractions sum > 1 (beyond catalog noise tol), λ = 0 on a non-terminal species, unknown species in `n0`; also empty/duplicate Inventory seeds, progeny cycle, or closure depth > 256 |
 | `DataFormatError` | Bundled JSON record missing required keys or carrying non-parseable values; unparseable nuclide name |
 | `UnitError` | Unparseable unit string, dimensionally wrong pint input, or string on `N0` / `A0` / Inventory amount |
+| `DoseDataError` | Dose request for a nuclide without bundled photon coefficients (H-3, C-14, Fe-55, Sr-90, Y-90, Po-210) or a missing/corrupt dose bundle |
+| `MaterialError` | Unknown shielding material name, energy outside the NIST table span, or malformed `mu(E)` table |
 
 ```python
 from pydecay import PyDecayError, NuclideNotFoundError, UnitError
@@ -243,5 +288,5 @@ E, A = beta_spectrum("Ac-226")
 
 ```python
 import pydecay
-pydecay.__version__  # "0.5.1"
+pydecay.__version__  # "0.6.0"
 ```

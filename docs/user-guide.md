@@ -419,6 +419,30 @@ inv = Inventory({"Mo-99": 1e6}, units="Bq")
 print(inv.instantaneous_rates())  # dict species -> atoms/s (or Quantity)
 ```
 
+### Dose rates and shielding (0.6.0)
+
+How far does a source reach, and how much does a wall stop? Full guides:
+[Dose rates](dose.md) and [Shielding](shielding.md).
+
+```python
+from pydecay import dose_rate, Inventory
+from pydecay import material, hvl_slab, transmit_slab
+
+# 1 MBq of Co-60 at 1 m -> air kerma (Gy/h)
+dose_rate(1e6, "Co-60", r_m=1.0)            # 3.07e-7
+dose_rate(1e6, "Co-60", r_m=1.0, quantity="ambient")  # Sv/h
+
+# Whole inventory (summed over closure species, kind mirrors r)
+Inventory({"Co-60": 1e6, "Cs-137": 1e6}).dose_rate(r="1 m")
+
+# Narrow-beam shielding
+hvl_slab("lead", 1.25)                       # 0.0104 m
+transmit_slab(1.0, "lead", 0.01, 1.25)      # 0.513 through 1 cm Pb
+```
+
+Nuclides without photon coefficients (H-3, C-14, Fe-55, Sr-90, Y-90,
+Po-210) raise `DoseDataError`; unknown materials raise `MaterialError`.
+
 ---
 
 ## 9. Cheat sheet (copy-paste)

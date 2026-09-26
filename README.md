@@ -1,5 +1,7 @@
 # pydecay
 
+![pydecay banner](https://raw.githubusercontent.com/DanielDeshmukh/pydecay/main/docs/public/1200x630.png)
+
 [![PyPI version](https://img.shields.io/pypi/v/pydecay?cacheBust=0.5.1)](https://pypi.org/project/pydecay/)
 [![Python 3.10+](https://img.shields.io/pypi/pyversions/pydecay)](https://pypi.org/project/pydecay/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -29,6 +31,7 @@ Author: **Daniel Deshmukh** · [github.com/DanielDeshmukh/pydecay](https://githu
   - [7. Unit conversions](#7-unit-conversions)
   - [8. Instantaneous rates & ODE residual](#8-instantaneous-rates--ode-residual)
   - [9. Error handling](#9-error-handling)
+  - [10. Dose rates & shielding](#10-dose-rates--shielding)
 - [Verification](#verification)
 - [Documentation](#documentation)
 - [Development](#development)
@@ -46,7 +49,7 @@ Requires **Python ≥ 3.10**. Runtime dependencies: `numpy`, `scipy`, `pint`.
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.5.1"
+print(pydecay.__version__)  # "0.6.0"
 ```
 
 ---
@@ -295,6 +298,8 @@ All package-raised errors inherit from `PyDecayError`:
 | `ChainDefinitionError` | Bad chain, empty/duplicate seeds, progeny cycle |
 | `DataFormatError` | Broken data record, or spectra on a stable nuclide |
 | `UnitError` | Bad unit string, or string on `N0` / `A0` / Inventory amount |
+| `DoseDataError` | Dose rate for a nuclide with no bundled photon coefficients |
+| `MaterialError` | Unknown shielding material or energy outside the NIST table span |
 | `PyDecayError` | Base class — catch this to catch **everything** above |
 
 ```python
@@ -309,6 +314,25 @@ try:
     ...
 except PyDecayError as e:
     print("pydecay said:", e)
+```
+
+### 10. Dose rates & shielding
+
+- Point-source exposure, air-kerma, and ambient H*(10) dose rates from
+  curated per-nuclide coefficients (31 Risø-M-2322 rows + 3 ICRP-107
+  fallbacks; `DoseDataError` for the six photon-free nuclides).
+- `Inventory.dose_rate()` sums over the progeny closure and mirrors pint
+  inputs at the edge (`r="1 m"` in, `Quantity` out).
+- Narrow-beam shielding: `mu`, `hvl`/`tvl` (by material or `mu`),
+  `transmit_slab`, `multilayer_transmit` - NIST XCOM tables bundled for
+  seven materials (0.01-20 MeV); buildup factors reserved for v0.7.
+
+```python
+from pydecay import dose_rate, hvl_slab, transmit_slab
+
+dose_rate(1e6, "Co-60", r_m=1.0)         # 3.07e-7 Gy/h
+hvl_slab("lead", 1.25)                   # 0.0104 m
+transmit_slab(1.0, "lead", 0.01, 1.25)   # 0.513
 ```
 
 ---
@@ -338,6 +362,8 @@ except PyDecayError as e:
 | [`docs/architecture.md`](docs/architecture.md) | Solver dispatch diagrams |
 | [`docs/math.md`](docs/math.md) | Formula derivations with citations |
 | [`docs/units.md`](docs/units.md) | Bq ↔ Ci, atoms ↔ grams, time parsing |
+| [`docs/dose.md`](docs/dose.md) | Dose-rate conventions, citations, provenance table |
+| [`docs/shielding.md`](docs/shielding.md) | HVL/TVL, Beer-Lambert, material tables |
 | [`docs/data-sources.md`](docs/data-sources.md) | ICRP-107 provenance |
 | [`CHANGELOG.md`](CHANGELOG.md) | Keep a Changelog history |
 
