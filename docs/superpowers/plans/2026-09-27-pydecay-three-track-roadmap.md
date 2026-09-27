@@ -182,7 +182,7 @@ Each notebook: (a) concept in 3–5 markdown cells with cited sources, (b) runna
 
 - [x] Step 1: notebook 01 + smoke test `tests/test_notebooks.py` executing all `.ipynb` via `nbclient` (skip if extra not installed — `pytest.importorskip`).
 - [x] Step 2–4: notebooks 02–04, same gate.
-- [ ] Step 5: gates + commit `docs(tutorials): four executable notebooks with golden asserts`.
+- [x] Step 5: gates + commit `docs(tutorials): four executable notebooks with golden asserts`.
 
 Note (2026-09-27): `tutorials` extra also includes `nbclient` + `ipykernel`
 (the execution harness needs a kernel; plan listed only jupyter/matplotlib).
