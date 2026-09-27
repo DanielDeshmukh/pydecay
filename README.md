@@ -365,6 +365,7 @@ transmit_slab(1.0, "lead", 0.01, 1.25)   # 0.513
 | [`docs/units.md`](docs/units.md) | Bq ↔ Ci, atoms ↔ grams, time parsing |
 | [`docs/dose.md`](docs/dose.md) | Dose-rate conventions, citations, provenance table |
 | [`docs/shielding.md`](docs/shielding.md) | HVL/TVL, Beer-Lambert, material tables |
+| [`docs/cookbook.md`](docs/cookbook.md) | 10 exec-tested recipes (outputs verified by tests) |
 | [`docs/data-sources.md`](docs/data-sources.md) | ICRP-107 provenance |
 | [`CHANGELOG.md`](CHANGELOG.md) | Keep a Changelog history |
 

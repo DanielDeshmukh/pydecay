@@ -19,6 +19,7 @@ nav:
   - Home: index.md
   - User guide: user-guide.md
   - Quickstart: quickstart.md
+  - Cookbook: cookbook.md
   - Mathematics: math.md
   - Architecture: architecture.md
   - Units: units.md

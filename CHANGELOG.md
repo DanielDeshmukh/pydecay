@@ -27,6 +27,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Golden values: five new analytic entries - Co-60 kerma/ambient rates for
   1 MBq at 1 m, the inverse-square identity, and two Beer-Lambert
   shielding identities (HVL = 1/2, double-thickness = square).
+- Docs: `docs/cookbook.md` with ten copy-paste recipes (decay, chains,
+  time series, dose conversions, HVL/multilayer sizing, CSV batch tables,
+  unit conversions, plotting, error handling); every code block is
+  executed and its printed output diffed against the documented output
+  by `tests/test_docs_recipes.py`, and the page ships in the mkdocs nav.
 
 ### Changed
 - Landing page: refreshed hero and playground copy for v0.6; version
