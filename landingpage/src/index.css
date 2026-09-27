@@ -430,6 +430,20 @@ section[id],
   color: #8c9195;
   font: 11px var(--mono);
 }
+.nuclide-filter {
+  width: 100%;
+  height: 38px;
+  margin-bottom: 8px;
+  padding: 0 12px;
+  border: 1px solid #575b5f;
+  background: #252829;
+  color: #ecf0f2;
+  font: 13px var(--mono);
+  outline-offset: 2px;
+}
+.nuclide-filter::placeholder {
+  color: #6f767b;
+}
 .number-wrap {
   display: flex;
   align-items: center;

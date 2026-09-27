@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { demoNuclides, featuredIsotopes, type DemoNuclide } from "./nuclides";
+import { demoNuclides, featuredIsotopes, filterDecayNuclides, type DemoNuclide } from "./nuclides";
 
 describe("demoNuclides data integrity", () => {
   it("has exactly four demo nuclides", () => {
@@ -74,6 +74,61 @@ describe("demoNuclides data integrity", () => {
     const cs137 = demoNuclides.find((n) => n.id === "Cs-137")!;
     const co60 = demoNuclides.find((n) => n.id === "Co-60")!;
     expect(cs137.halfLifeDays).toBeGreaterThan(co60.halfLifeDays);
+  });
+});
+
+describe("filterDecayNuclides", () => {
+  it("returns every nuclide for an empty or whitespace query", () => {
+    expect(filterDecayNuclides(demoNuclides, "")).toBe(demoNuclides);
+    expect(filterDecayNuclides(demoNuclides, "   ")).toBe(demoNuclides);
+  });
+
+  it("matches on id, case-insensitively", () => {
+    expect(filterDecayNuclides(demoNuclides, "cs-137").map((n) => n.id)).toEqual(["Cs-137"]);
+    expect(filterDecayNuclides(demoNuclides, "CO-60").map((n) => n.id)).toEqual(["Co-60"]);
+  });
+
+  it("matches on element name", () => {
+    expect(filterDecayNuclides(demoNuclides, "iod").map((n) => n.id)).toEqual(["I-131"]);
+    expect(filterDecayNuclides(demoNuclides, "technetium").map((n) => n.id)).toEqual(["Tc-99m"]);
+  });
+
+  it("trims surrounding whitespace before matching", () => {
+    expect(filterDecayNuclides(demoNuclides, "  Tc-99  ").map((n) => n.id)).toEqual(["Tc-99m"]);
+  });
+
+  it("returns an empty array when nothing matches", () => {
+    expect(filterDecayNuclides(demoNuclides, "oganesson-999")).toEqual([]);
+  });
+
+  it("keeps input order and never mutates the input array", () => {
+    const snapshot = JSON.parse(JSON.stringify(demoNuclides));
+    const result = filterDecayNuclides(demoNuclides, "e");
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.length).toBeLessThan(demoNuclides.length);
+    const inputIds = demoNuclides.map((n) => n.id);
+    let cursor = 0;
+    for (const id of result.map((n) => n.id)) {
+      while (cursor < inputIds.length && inputIds[cursor] !== id) cursor += 1;
+      expect(cursor).toBeLessThan(inputIds.length);
+      cursor += 1;
+    }
+    expect(demoNuclides).toEqual(snapshot);
+  });
+
+  it("works on arbitrary DemoNuclide lists, not just demoNuclides", () => {
+    const custom: DemoNuclide[] = [
+      {
+        id: "Ra-226",
+        element: "Radium",
+        halfLifeDays: 590564.4,
+        displayHalfLife: "1617 years",
+        timeUnit: "years",
+        daysPerUnit: 365.2422,
+      },
+    ];
+    expect(filterDecayNuclides(custom, "radium")).toHaveLength(1);
+    expect(filterDecayNuclides(custom, "iodine")).toHaveLength(0);
   });
 });
 

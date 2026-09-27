@@ -53,7 +53,7 @@ Baseline: **68,186 LOC** (2026-09-27). Projected end state: **~120–145k** — 
 - Consumes: `src/pydecay/data/icrp107.json` (1498 records; fields include name/id, half-life, element symbol/name — read via `Nuclide.load_all()` semantics from `src/pydecay/nuclide.py:167-183`).
 - Produces: `export type DecayNuclide = { id: string; element: string; halfLifeDays: number; displayHalfLife: string; timeUnit: "hours" | "days" | "years"; daysPerUnit: number }` and `export const decayNuclides: DecayNuclide[]` (sorted by id); `DemoNuclide` stays structurally identical so `DecayPanel` code at `App.tsx:417` needs only the source swapped.
 
-- [ ] **Step 1: Write the failing generator self-check + data test**
+- [x] **Step 1: Write the failing generator self-check + data test**
 
 `landingpage/src/data/decayNuclides.test.ts`:
 
@@ -81,12 +81,12 @@ describe("decayNuclides", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `npm run test -- decayNuclides` (in `landingpage/`)
 Expected: FAIL — module `./decayNuclides` not found.
 
-- [ ] **Step 3: Write the committed generator**
+- [x] **Step 3: Write the committed generator**
 
 `landingpage/scripts/generate_decay_nuclides.py` (run with the project venv `D:\Vs Code\themis\venv\Scripts\python.exe` from repo root; add repo `src/` to `sys.path`):
 
@@ -133,17 +133,17 @@ if __name__ == "__main__":
 
 (Adjust attribute names to the real `Nuclide` fields after checking `src/pydecay/nuclide.py` — `half_life_s` exists; element name field must be verified in Step 3a.)
 
-- [ ] **Step 3a: Verify Nuclide field names**
+- [x] **Step 3a: Verify Nuclide field names**
 
 Run: `& "D:\Vs Code\themis\venv\Scripts\python.exe" -c "from pydecay import Nuclide; n=Nuclide.load('I-131'); print([a for a in dir(n) if not a.startswith('_')])"`
 Expected: confirm element/half-life attribute names; fix generator accordingly.
 
-- [ ] **Step 4: Run generator + test to green**
+- [x] **Step 4: Run generator + test to green**
 
 Run: `& "D:\Vs Code\themis\venv\Scripts\python.exe" landingpage/scripts/generate_decay_nuclides.py` then `npm run test -- decayNuclides`
 Expected: "wrote N nuclides" (N ≥ 1200), tests PASS.
 
-- [ ] **Step 5: Wire DecayPanel to the catalog with a filter**
+- [x] **Step 5: Wire DecayPanel to the catalog with a filter**
 
 `App.tsx` DecayPanel changes:
 
@@ -159,11 +159,11 @@ const nuclide = options.find((item) => item.id === selectedId) ?? decayNuclides[
 
 Render a text input (`placeholder="Filter nuclides…"`, `aria-label="Filter nuclides"`) above the `<select>`, options from `options`, keeping `id="nuclide-select"` and existing testids. When the selected id is filtered out, keep showing it (append to `options`) so the select never jumps.
 
-- [ ] **Step 6: Update App tests**
+- [x] **Step 6: Update App tests**
 
 In `App.test.tsx` decay tests: add one — type "cs-137" into the filter, expect `<select>` options reduced and Cs-137 still selectable; existing decay-tab test must still pass with I-131 default.
 
-- [ ] **Step 7: Gate + commit**
+- [x] **Step 7: Gate + commit**
 
 Run: `npm run lint` (in `landingpage/`) — prettier will reformat the generated file; accept.
 Commit: `git add landingpage/scripts landingpage/src && git -c core.hooksPath=/dev/null commit -m "feat(landing): decay tab uses full ICRP-107 catalog with filter"`

@@ -95,6 +95,46 @@ describe("App home page", () => {
     expect(screen.getByText(/50\.00% of the initial activity remains/)).toBeTruthy();
   });
 
+  it("DECAY nuclide select exposes the full ICRP-107 catalog", () => {
+    stubLocation("/");
+    render(<App />);
+    const select = screen.getByRole("combobox", { name: "NUCLIDE" }) as HTMLSelectElement;
+    expect(select.options.length).toBeGreaterThanOrEqual(1200);
+    expect(select.querySelector('option[value="U-238"]')).toBeTruthy();
+    expect(select.querySelector('option[value="Tc-99m"]')).toBeTruthy();
+    expect(select.value).toBe("I-131");
+  });
+
+  it("filters the nuclide select, keeps the current selection, and reports matches", () => {
+    stubLocation("/");
+    render(<App />);
+    const filter = screen.getByLabelText(/Filter nuclides/i);
+    fireEvent.change(filter, { target: { value: "technetium" } });
+    const select = screen.getByRole("combobox", { name: "NUCLIDE" }) as HTMLSelectElement;
+    const values = Array.from(select.options).map((option) => option.value);
+    const technetiumIds = values.filter((value) => value.startsWith("Tc-"));
+    expect(technetiumIds).toContain("Tc-99m");
+    expect(technetiumIds.length).toBeGreaterThan(1); // the catalog holds many Tc isotopes
+    expect(values).toContain("I-131"); // current selection preserved while filtered out
+    expect(select.value).toBe("I-131");
+    expect(screen.getByText(new RegExp(`${technetiumIds.length} match`))).toBeTruthy();
+    fireEvent.change(select, { target: { value: "Tc-99m" } });
+    expect(select.value).toBe("Tc-99m");
+    expect(screen.getByText(/Half-life: 6\.015 hours/)).toBeTruthy();
+    expect(screen.getByText(new RegExp(`${technetiumIds.length} match`))).toBeTruthy();
+  });
+
+  it("shows an empty match hint when the filter matches nothing", () => {
+    stubLocation("/");
+    render(<App />);
+    const filter = screen.getByLabelText(/Filter nuclides/i);
+    fireEvent.change(filter, { target: { value: "oganesson-999" } });
+    const select = screen.getByRole("combobox", { name: "NUCLIDE" }) as HTMLSelectElement;
+    expect(select.value).toBe("I-131");
+    expect(select.options.length).toBe(1); // only the preserved selection
+    expect(screen.getByText(/0 match/)).toBeTruthy();
+  });
+
   it("updates remaining activity when slider moves to 2 half-lives", () => {
     stubLocation("/");
     render(<App />);
@@ -126,7 +166,7 @@ describe("App home page", () => {
     render(<App />);
     const select = screen.getByRole("combobox", { name: "NUCLIDE" }) as HTMLSelectElement;
     fireEvent.change(select, { target: { value: "Co-60" } });
-    expect(screen.getByText(/Half-life: 5\.27 years/)).toBeTruthy();
+    expect(screen.getByText(/Half-life: 5\.271 years/)).toBeTruthy();
   });
 
   it("switches playground to the dose tab and shows a live dose rate", () => {

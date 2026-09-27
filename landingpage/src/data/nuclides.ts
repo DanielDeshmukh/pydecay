@@ -49,3 +49,9 @@ export const featuredIsotopes: Record<string, string> = {
   Cs: "Cs-137",
   Tc: "Tc-99m",
 };
+
+export function filterDecayNuclides(nuclides: DemoNuclide[], query: string): DemoNuclide[] {
+  const q = query.trim().toLowerCase();
+  if (q === "") return nuclides;
+  return nuclides.filter((item) => `${item.id} ${item.element}`.toLowerCase().includes(q));
+}

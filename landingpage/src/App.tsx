@@ -19,7 +19,8 @@ import {
 } from "lucide-react";
 import CodeBlock from "./components/CodeBlock";
 import { enrichElementsWithApi, fallbackElements, type ElementInfo } from "./data/elements";
-import { demoNuclides, featuredIsotopes } from "./data/nuclides";
+import { decayNuclides } from "./data/decayNuclides";
+import { demoNuclides, featuredIsotopes, filterDecayNuclides } from "./data/nuclides";
 import {
   activityLiteral,
   AVOGADRO_PER_MOL,
@@ -414,7 +415,12 @@ function DecayPanel({
 }) {
   const [activityInput, setActivityInput] = useState("1000");
   const [halfLives, setHalfLives] = useState(1);
-  const nuclide = demoNuclides.find((item) => item.id === selectedId) ?? demoNuclides[0];
+  const [nuclideFilter, setNuclideFilter] = useState("");
+  const visibleNuclides = filterDecayNuclides(decayNuclides, nuclideFilter);
+  const nuclide = decayNuclides.find((item) => item.id === selectedId) ?? decayNuclides[0];
+  const selectOptions = visibleNuclides.some((item) => item.id === nuclide.id)
+    ? visibleNuclides
+    : [nuclide, ...visibleNuclides];
   const initialActivity = parseActivityInput(activityInput);
   const initialLiteral = activityLiteral(initialActivity);
   const remaining = remainingFraction(halfLives);
@@ -435,13 +441,22 @@ function DecayPanel({
         <label className="field-label" htmlFor="nuclide-select">
           NUCLIDE
         </label>
+        <input
+          className="nuclide-filter"
+          id="nuclide-filter"
+          type="search"
+          placeholder="Filter nuclides…"
+          aria-label="Filter nuclides"
+          value={nuclideFilter}
+          onChange={(event) => setNuclideFilter(event.target.value)}
+        />
         <div className="select-wrap">
           <select
             id="nuclide-select"
             value={nuclide.id}
             onChange={(event) => onSelect(event.target.value)}
           >
-            {demoNuclides.map((item) => (
+            {selectOptions.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.id} / {item.element}
               </option>
@@ -449,7 +464,10 @@ function DecayPanel({
           </select>
           <ChevronDown size={17} aria-hidden="true" />
         </div>
-        <p className="field-hint">Half-life: {nuclide.displayHalfLife}</p>
+        <p className="field-hint">
+          Half-life: {nuclide.displayHalfLife}
+          {nuclideFilter.trim() !== "" ? ` · ${visibleNuclides.length} match` : ""}
+        </p>
 
         <label className="field-label activity-label" htmlFor="initial-activity">
           INITIAL ACTIVITY
