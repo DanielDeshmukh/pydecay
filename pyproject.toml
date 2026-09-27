@@ -53,6 +53,7 @@ test = [
 docs = ["mkdocs-material>=9.5"]
 dev = ["pytest>=7.4", "pytest-cov>=4.1", "ruff>=0.4", "mypy>=1.8", "build>=1.0"]
 icrp = ["pyreadr>=0.5"]
+tutorials = ["jupyter>=1.0", "matplotlib>=3.7", "nbclient>=0.8", "ipykernel>=6"]
 
 [tool.hatch.version]
 path = "src/pydecay/__init__.py"

@@ -34,6 +34,7 @@ Author: **Daniel Deshmukh** · [github.com/DanielDeshmukh/pydecay](https://githu
   - [10. Dose rates & shielding](#10-dose-rates--shielding)
 - [Verification](#verification)
 - [Documentation](#documentation)
+- [Tutorials](#tutorials)
 - [Development](#development)
 - [License](#license)
 
@@ -374,6 +375,27 @@ tracks a seed mix and every daughter that grows in · `DecayChain` follows
 parents and daughters through time · `emissions` / `beta_spectrum` give
 radiation spectra · unit helpers convert Bq↔Ci, atoms↔grams, and parse times
 to seconds.
+
+---
+
+## Tutorials
+
+Four executable notebooks in [`notebooks/`](notebooks/) walk the public API
+end to end; each cites its sources, ends with a tagged `answer` exercise
+cell, and prints golden values asserted against
+`tests/golden/golden_values.json` (executed on every test run):
+
+| Notebook | Topic |
+|---|---|
+| [`01_decay_basics.ipynb`](notebooks/01_decay_basics.ipynb) | Exponential decay, half-lives, unit conversions, decay curve |
+| [`02_inventory_chains.ipynb`](notebooks/02_inventory_chains.ipynb) | Bateman chains, branching, mixed inventories |
+| [`03_dose_rates.ipynb`](notebooks/03_dose_rates.ipynb) | Point-source kerma/ambient dose rates, inverse-square law |
+| [`04_shielding_design.ipynb`](notebooks/04_shielding_design.ipynb) | HVL/TVL sizing, Beer-Lambert, multilayer slabs |
+
+```bash
+pip install "pydecay[tutorials]"
+jupyter lab notebooks/
+```
 
 ---
 

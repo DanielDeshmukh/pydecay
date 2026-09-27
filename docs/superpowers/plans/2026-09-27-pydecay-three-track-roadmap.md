@@ -29,9 +29,9 @@
 
 | Phase | Track | Contents | Est. LOC added |
 |---|---|---|---:|
-| Now → v0.6.1 | A quick wins | A1 decay catalog dropdown, A2 landing deploy (gated), A3 hero/copy polish | +3–5k |
+| Now → v0.6.1 | A quick wins | A1 decay catalog dropdown, A2 landing deploy (gated) | +3–5k |
 | v0.7 | B (core) | B1 buildup, B2 full XCOM, B3 extended sources, B4 CLI, B5 plotting, B6 release | +30–45k |
-| v0.7.x | A (depth) | A4 notebooks, A5 docs cookbook, A6 JOSS paper draft | +6–10k |
+| v0.7.x | A (depth) | A3 notebooks, A4 docs cookbook, A5 JOSS paper draft | +6–10k |
 | v0.8 → v1.0 | C | C1 MC engine, C2 uncertainty, C3 ENSDF parser, C4 neutron, C5 MCNP writer, C6 benchmarks, C7 release | +20–35k |
 
 Baseline: **68,186 LOC** (2026-09-27). Projected end state: **~120–145k** — every line is a feature, dataset, test, or doc someone can use.
@@ -168,9 +168,9 @@ In `App.test.tsx` decay tests: add one — type "cs-137" into the filter, expect
 Run: `npm run lint` (in `landingpage/`) — prettier will reformat the generated file; accept.
 Commit: `git add landingpage/scripts landingpage/src && git -c core.hooksPath=/dev/null commit -m "feat(landing): decay tab uses full ICRP-107 catalog with filter"`
 
-### Task A2: Deploy landing page (GATED)
+### Task A2: Deploy landing page (GATED) — push-based auto-deploy
 
-- [ ] **Step 1:** Ask user for explicit go-ahead (user directive: never deploy unasked). On yes: `vercel-cli-with-tokens` skill, project root `landingpage/`, prod domain or preview URL.
+- [x] **Step 1:** Ask user for explicit go-ahead (user directive: never deploy unasked). On yes: deploy via git push to `origin/main` (user: Vercel auto-deploys on push; manual `vercel deploy` not wanted).
 - [ ] **Step 2:** Verify live: open deployed URL, smoke-check 3 tabs + `/docs/changelog` shows 0.6.0.
 - [ ] **Step 3:** Record URL in `.superpowers/sdd/2026-09-24-pydecay-dose-shielding/progress.md`.
 
@@ -180,9 +180,15 @@ Commit: `git add landingpage/scripts landingpage/src && git -c core.hooksPath=/d
 
 Each notebook: (a) concept in 3–5 markdown cells with cited sources, (b) runnable cells using only public API (`Nuclide.load`, `decayed_activity`, `DecayChain`, `dose_rate`, `transmit_slab`), (c) an exercise cell with hidden answer, (d) final cell printing a golden value asserted against `tests/golden/golden_values.json` equivalents.
 
-- [ ] Step 1: notebook 01 + smoke test `tests/test_notebooks.py` executing all `.ipynb` via `nbclient` (skip if extra not installed — `pytest.importorskip`).
-- [ ] Step 2–4: notebooks 02–04, same gate.
+- [x] Step 1: notebook 01 + smoke test `tests/test_notebooks.py` executing all `.ipynb` via `nbclient` (skip if extra not installed — `pytest.importorskip`).
+- [x] Step 2–4: notebooks 02–04, same gate.
 - [ ] Step 5: gates + commit `docs(tutorials): four executable notebooks with golden asserts`.
+
+Note (2026-09-27): `tutorials` extra also includes `nbclient` + `ipykernel`
+(the execution harness needs a kernel; plan listed only jupyter/matplotlib).
+README carries the notebook pointer instead of mkdocs.yml (plan allowed
+either). Golden file gained 5 analytic dose/shielding entries for
+notebooks 03/04 (spec: "asserted against golden_values.json equivalents").
 
 ### Task A4: Docs cookbook
 

@@ -152,6 +152,69 @@
       "rel_tol": 1e-9,
       "source": "analytic: star branching closed form",
       "note": "Star-topology closed form (feed integral) with synthetic lambdas, not IAEA topology; default n0 parent=1."
+    },
+    {
+      "id": "co60_kerma_1mbq_1m",
+      "kind": "dose_rate",
+      "nuclide": "Co-60",
+      "a0_bq": 1e6,
+      "r_m": 1.0,
+      "quantity": "kerma",
+      "expected": 3.0747600000000005e-07,
+      "rel_tol": 1e-12,
+      "source": "analytic: exposure_rate = gamma*(A_Bq/3.7e7)/r_cm^2 times 8.76e-3 Gy/R, gamma=12.987 R.cm2.mCi-1.h-1 (Lauridsen 1982, Risoe-M-2322 Table 4)",
+      "note": "Point-source air kerma rate in Gy/h at 1 m from 1 MBq Co-60; bundled Risoe-M-2322 exposure-rate constant."
+    },
+    {
+      "id": "co60_ambient_1mbq_1m",
+      "kind": "dose_rate",
+      "nuclide": "Co-60",
+      "a0_bq": 1e6,
+      "r_m": 1.0,
+      "quantity": "ambient",
+      "expected": 3.5667216000000003e-07,
+      "rel_tol": 1e-12,
+      "source": "analytic: kerma rate times H*(10)/Ka = 1.16 at 1.25 MeV (ICRP 74 Table A.21)",
+      "source_url": "https://www.icrp.org/publication.asp?id=ICRP+Publication+74",
+      "note": "Ambient dose equivalent rate in Sv/h at 1 m from 1 MBq Co-60; bundled ICRP-74 conversion factor."
+    },
+    {
+      "id": "dose_inverse_square_identity",
+      "kind": "dose_identity",
+      "nuclide": "Co-60",
+      "a0_bq": 1e6,
+      "r1_m": 1.0,
+      "r2_m": 2.0,
+      "expected": 4.0,
+      "rel_tol": 1e-12,
+      "source": "analytic: point-source inverse-square law",
+      "source_url": "https://www.icrp.org/publication.asp?id=ICRP+Publication+74",
+      "note": "Dose rate at 1 m divided by dose rate at 2 m equals exactly (2/1)^2 for a point source."
+    },
+    {
+      "id": "hvl_half_intensity_identity",
+      "kind": "shielding_identity",
+      "check": "half_intensity",
+      "material": "concrete",
+      "energy_MeV": 1.25,
+      "expected": 0.5,
+      "rel_tol": 1e-12,
+      "source": "analytic: Beer-Lambert exp(-mu*x) with HVL = ln2/mu by definition",
+      "source_url": "https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html",
+      "note": "Transmission through exactly one half-value layer of concrete at 1.25 MeV (Co-60 mean gamma) is 1/2."
+    },
+    {
+      "id": "slab_double_thickness_identity",
+      "kind": "shielding_identity",
+      "check": "double_thickness",
+      "material": "concrete",
+      "energy_MeV": 1.25,
+      "thickness_m": 0.05,
+      "expected": 1.0,
+      "rel_tol": 1e-12,
+      "source": "analytic: Beer-Lambert exp(-mu*2x) / exp(-mu*x)^2 = 1",
+      "source_url": "https://physics.nist.gov/PhysRefData/Xcom/html/xcom1.html",
+      "note": "Transmission through a double-thickness slab equals the square of the single-slab transmission."
     }
   ]
 }

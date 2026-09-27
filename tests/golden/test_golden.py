@@ -7,7 +7,15 @@ from pathlib import Path
 
 import pytest
 
-from pydecay import DecayChain, Nuclide, decayed_activity, remaining_fraction
+from pydecay import (
+    DecayChain,
+    Nuclide,
+    decayed_activity,
+    dose_rate,
+    hvl_slab,
+    remaining_fraction,
+    transmit_slab,
+)
 
 GOLDEN_PATH = Path(__file__).parent / "golden_values.json"
 REQUIRED_ENTRY_KEYS = {"id", "kind", "rel_tol", "source", "note"}
@@ -27,6 +35,11 @@ REQUIRED_IDS = frozenset(
         "one_half_life_identity",
         "sr90_y90_atoms_30y",
         "branch_p_d1_d2_10s",
+        "co60_kerma_1mbq_1m",
+        "co60_ambient_1mbq_1m",
+        "dose_inverse_square_identity",
+        "hvl_half_intensity_identity",
+        "slab_double_thickness_identity",
     }
 )
 
@@ -42,7 +55,7 @@ def test_golden_file_exists_and_has_schema():
     entries = data["entries"]
     assert isinstance(entries, list)
     ids = [e["id"] for e in entries]
-    assert len(entries) == 13, f"expected 13 golden entries, got {len(entries)}"
+    assert len(entries) == 18, f"expected 18 golden entries, got {len(entries)}"
     assert len(ids) == len(set(ids)), "duplicate golden entry ids"
     assert set(ids) == REQUIRED_IDS, (
         f"golden id set drifted: missing={sorted(REQUIRED_IDS - set(ids))} "
@@ -117,3 +130,34 @@ def test_chain_atoms(entry_id):
         assert got[name] == pytest.approx(exp, rel=e["rel_tol"]), (
             f"{entry_id}:{name} got={got[name]!r} expected={exp!r}"
         )
+
+
+@pytest.mark.parametrize("entry_id", _ids("dose_rate"))
+def test_dose_rate(entry_id):
+    e = _entry(entry_id)
+    got = dose_rate(e["a0_bq"], e["nuclide"], e["r_m"], quantity=e.get("quantity", "kerma"))
+    assert got == pytest.approx(e["expected"], rel=e["rel_tol"])
+
+
+@pytest.mark.parametrize("entry_id", _ids("dose_identity"))
+def test_dose_identity(entry_id):
+    e = _entry(entry_id)
+    d1 = dose_rate(e["a0_bq"], e["nuclide"], e["r1_m"])
+    d2 = dose_rate(e["a0_bq"], e["nuclide"], e["r2_m"])
+    assert d1 / d2 == pytest.approx(e["expected"], rel=e["rel_tol"])
+
+
+@pytest.mark.parametrize("entry_id", _ids("shielding_identity"))
+def test_shielding_identity(entry_id):
+    e = _entry(entry_id)
+    if e["check"] == "half_intensity":
+        hvl_m = hvl_slab(e["material"], e["energy_MeV"])
+        got = transmit_slab(1.0, e["material"], hvl_m, e["energy_MeV"])
+    elif e["check"] == "double_thickness":
+        x = e["thickness_m"]
+        single = transmit_slab(1.0, e["material"], x, e["energy_MeV"])
+        double = transmit_slab(1.0, e["material"], 2 * x, e["energy_MeV"])
+        got = double / single**2
+    else:
+        raise AssertionError(f"unknown shielding identity check {e['check']!r}")
+    assert got == pytest.approx(e["expected"], rel=e["rel_tol"])
