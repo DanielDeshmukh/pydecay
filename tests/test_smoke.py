@@ -4,4 +4,4 @@
 def test_package_imports():
     import pydecay
 
-    assert pydecay.__version__ == "0.6.0"
+    assert pydecay.__version__ == "0.6.1"
