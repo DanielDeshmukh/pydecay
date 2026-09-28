@@ -50,7 +50,7 @@ Requires **Python ≥ 3.10**. Runtime dependencies: `numpy`, `scipy`, `pint`.
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.6.0"
+print(pydecay.__version__)  # "0.6.1"
 ```
 
 ---

@@ -15,7 +15,7 @@ You need Python 3.10 or newer. That's it — NumPy, SciPy, and Pint come with it
 
 ```python
 import pydecay
-print(pydecay.__version__)  # "0.5.1"
+print(pydecay.__version__)  # "0.6.1"
 ```
 
 ---
@@ -471,7 +471,7 @@ from pydecay import (
 )
 
 # --- version ---
-print(__version__)  # "0.5.1"
+print(__version__)  # "0.6.1"
 
 # --- one isotope ---
 i131 = Nuclide.load("I-131")

@@ -257,8 +257,10 @@ describe("App docs page", () => {
     stubLocation("/docs");
     render(<App />);
     expect(screen.getByRole("heading", { name: /Documentation/i })).toBeTruthy();
-    expect(screen.getByText(/VERSION 0\.6\.0/)).toBeTruthy();
+    expect(screen.getByText(/VERSION 0\.6\.1/)).toBeTruthy();
     expect(screen.getByText(/pip install pydecay/)).toBeTruthy();
+    expect(screen.getAllByText(/pydecay\[tutorials\]/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/ten copy-paste recipes/i).length).toBeGreaterThan(0);
   });
 
   it("lists all 11 doc contents entries", () => {
@@ -299,9 +301,13 @@ describe("App docs page", () => {
     expect(screen.getAllByText(/decay_ode_residual/).length).toBeGreaterThan(0);
   });
 
-  it("shows changelog with current 0.6.0 entry", () => {
+  it("shows changelog with current 0.6.1 entry", () => {
     stubLocation("/docs/changelog");
     render(<App />);
+    expect(screen.getAllByText(/0\.6\.1/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/full bundled ICRP-107 catalog/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/four executable tutorial notebooks/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/ten copy-paste recipes/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/0\.6\.0/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/DoseDataError/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/0\.5\.1/).length).toBeGreaterThan(0);

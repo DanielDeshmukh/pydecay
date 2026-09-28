@@ -34,10 +34,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unit conversions, plotting, error handling); every code block is
   executed and its printed output diffed against the documented output
   by `tests/test_docs_recipes.py`, and the page ships in the mkdocs nav.
+- Landing docs page: Installation section now documents the
+  `pip install "pydecay[tutorials]"` extra and the cookbook; the docs
+  changelog gains a current 0.6.1 entry covering the catalog, notebooks,
+  and recipes.
 
 ### Changed
-- Landing page: refreshed hero and playground copy for v0.6; version
-  bumped to 0.6.0.
+- Version parity at 0.6.1 across README/docs examples, landing package
+  metadata, docs masthead, and cheat sheet; landing hero and playground
+  copy refreshed for v0.6.
+- Landing converter hints corrected to ICRP-107 half-lives (I-131
+  8.0207 days, Co-60 1925.342 days).
 
 ## [0.6.0] - 2026-09-24
 

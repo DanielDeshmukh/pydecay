@@ -1015,7 +1015,7 @@ function UnitConverter() {
   const [massUInput, setMassUInput] = useState("130.9061");
   const [atomsInput, setAtomsInput] = useState("6.02214076e23");
   const [timeInput, setTimeInput] = useState("8.02 days");
-  const [halfLifeDaysInput, setHalfLifeDaysInput] = useState("8.0228");
+  const [halfLifeDaysInput, setHalfLifeDaysInput] = useState("8.0207");
 
   function parsePositive(raw: string, fallback: number): number {
     const n = Number(raw);
@@ -1026,7 +1026,7 @@ function UnitConverter() {
   const massG = parsePositive(massGInput, 1);
   const massU = parsePositive(massUInput, 130.9061);
   const atomsN = parsePositive(atomsInput, AVOGADRO_PER_MOL);
-  const halfLifeDays = parsePositive(halfLifeDaysInput, 8.0228);
+  const halfLifeDays = parsePositive(halfLifeDaysInput, 8.0207);
 
   let primaryLabel = "ACTIVITY";
   let primaryValue = "";
@@ -1240,7 +1240,7 @@ tau = mean_lifetime_s(lam)     # ${formatConverter(tau)} s`;
                 />
                 <span>days</span>
               </div>
-              <p className="field-hint">I-131 ≈ 8.0228 days · Co-60 ≈ 1925.23 days</p>
+              <p className="field-hint">I-131 ≈ 8.0207 days · Co-60 ≈ 1925.342 days</p>
             </>
           )}
 
@@ -1313,7 +1313,7 @@ tau = mean_lifetime_s(lam)     # ${formatConverter(tau)} s`;
         </div>
       </Reveal>
       <p className="workbench-footnote">
-        Preview calculated in your browser — same formulas as pydecay 0.6.0 top-level exports (
+        Preview calculated in your browser — same formulas as pydecay 0.6.1 top-level exports (
         <code>to_seconds</code>, <code>bq_to_ci</code>, <code>ci_to_bq</code>,{" "}
         <code>atoms_to_grams</code>, <code>grams_to_atoms</code>, <code>decay_constant</code>,{" "}
         <code>mean_lifetime_s</code>).
@@ -2107,7 +2107,7 @@ function DocsPage({ path }: { path: string }) {
         <div className="docs-masthead-meta">
           <span>PYTHON 3.10+</span>
           <span>MIT + ICRP-107 DATA</span>
-          <span>VERSION 0.6.0</span>
+          <span>VERSION 0.6.1</span>
         </div>
       </div>
 
@@ -2150,6 +2150,17 @@ function DocsPage({ path }: { path: string }) {
               <span>DEPENDS ON</span>
               <strong>numpy / scipy / pint</strong>
             </div>
+            <p>
+              To run the four tutorial notebooks (decay basics, chains &amp; inventories, dose
+              rates, and shielding design) in <code>notebooks/</code>, add the tutorials extra:
+            </p>
+            <CodeBlock code={'pip install "pydecay[tutorials]"'} label="TERMINAL" />
+            <p>
+              Prefer recipes? <code>docs/cookbook.md</code> collects ten copy-paste examples —
+              remaining activity, chain queries, dose conversions, HVL sizing, CSV tables, plots,
+              and error handling — and every one is executed against its documented output by the
+              test suite.
+            </p>
           </DocsSection>
 
           <DocsSection id="user-guide" number="02" title="User guide — every function, simply">
@@ -2364,7 +2375,7 @@ function DocsPage({ path }: { path: string }) {
 
             <h3 className="docs-subhead">Cheat sheet (copy-paste everything)</h3>
             <CodeBlock
-              code={`from pydecay import (\n    Nuclide, DecayChain, Inventory,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    dn_dt, da_dt, decay_ode_residual,\n    __version__,\n)\n\nprint(__version__)  # \"0.6.0\"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nprint(dn_dt(1e6, "8.02 days"))      # atoms/s\nprint(da_dt(1000.0, "8.02 days", 0.0))  # Bq/s\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
+              code={`from pydecay import (\n    Nuclide, DecayChain, Inventory,\n    decayed_activity, decayed_atoms, remaining_fraction,\n    emissions, beta_spectrum,\n    to_seconds, bq_to_ci, ci_to_bq,\n    atoms_to_grams, grams_to_atoms,\n    decay_constant, mean_lifetime_s,\n    dn_dt, da_dt, decay_ode_residual,\n    __version__,\n)\n\nprint(__version__)  # \"0.6.1\"\n\ni131 = Nuclide.load("I-131")\nprint(decayed_activity(A0=1000.0, half_life=i131.half_life, time=i131.half_life))  # 500\nprint(remaining_fraction(half_life="8.02 days", time="8.02 days"))  # 0.5\n\nprint(to_seconds("8.02 days"))      # 692928.0\nprint(bq_to_ci(3.7e10))             # 1.0\nprint(atoms_to_grams(1e18, 130.9061))\nprint(decay_constant(692988.48))\n\nprint(dn_dt(1e6, "8.02 days"))      # atoms/s\nprint(da_dt(1000.0, "8.02 days", 0.0))  # Bq/s\nprint(decay_ode_residual(1e6, 8.02 * 86400))  # 0.0\n\nchain = DecayChain.from_isotopes(["Sr-90", "Y-90"])\nprint(chain.at(t="1 day", n0={"Sr-90": 1e6, "Y-90": 0.0}))\n\nb = DecayChain.branching(parent="P", branches={"D1": 0.6, "D2": 0.3},\n                         lambdas={"P": 0.7, "D1": 1e-5, "D2": 2e-5})\nprint(b.at(t=1.0))\n\nrows = emissions("Co-60")\nE, A = beta_spectrum("Sr-90")\nprint(len(rows), len(E))`}
               label="FULL CHEAT SHEET"
             />
             <p className="docs-small-result">
@@ -2596,6 +2607,40 @@ function DocsPage({ path }: { path: string }) {
             </p>
             <div className="changelog-list">
               <article className="changelog-entry is-current">
+                <header>
+                  <span>0.6.1</span>
+                  <time dateTime="2026-09-27">2026-09-27</time>
+                </header>
+                <h4>Added</h4>
+                <ul>
+                  <li>
+                    DECAY tab now ships the full bundled ICRP-107 catalog (1252 radionuclides)
+                    behind a live filter input, replacing four hardcoded demo nuclides.
+                  </li>
+                  <li>
+                    Four executable tutorial notebooks (<code>notebooks/01..04</code>) covering
+                    decay basics, chains &amp; inventories, dose rates, and shielding design — each
+                    with cited sources, a tagged answer exercise, and golden values asserted on
+                    every test run; install with{" "}
+                    <code>pip install &quot;pydecay[tutorials]&quot;</code>.
+                  </li>
+                  <li>
+                    Cookbook: ten copy-paste recipes in <code>docs/cookbook.md</code> (decay,
+                    chains, dose conversions, HVL sizing, CSV tables, plotting, error handling) —
+                    every documented output is executed and diffed by{" "}
+                    <code>tests/test_docs_recipes.py</code>.
+                  </li>
+                </ul>
+                <h4>Changed</h4>
+                <ul>
+                  <li>
+                    Version parity across the site: docs masthead and cheat sheet report 0.6.1;
+                    converter hints follow ICRP-107 exactly (I-131 8.0207 days, Co-60 1925.342
+                    days).
+                  </li>
+                </ul>
+              </article>
+              <article className="changelog-entry">
                 <header>
                   <span>0.6.0</span>
                   <time dateTime="2026-09-24">2026-09-24</time>

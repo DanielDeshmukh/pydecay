@@ -288,5 +288,5 @@ E, A = beta_spectrum("Ac-226")
 
 ```python
 import pydecay
-pydecay.__version__  # "0.6.0"
+pydecay.__version__  # "0.6.1"
 ```
